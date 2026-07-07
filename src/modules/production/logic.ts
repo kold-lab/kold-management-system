@@ -123,3 +123,37 @@ export function parseWriteOffQty(raw: string, qtyRemaining: number): number {
   }
   return qty;
 }
+
+export type StockSummaryInput = {
+  skuCode: string;
+  label: string;
+  qtyRemaining: number;
+  expiryStatus: ExpiryStatus;
+};
+
+export type StockSummaryRow = {
+  skuCode: string;
+  label: string;
+  totalBottles: number;
+  /** Bottles expired, expiring today, or within the 2-day window. */
+  urgentBottles: number;
+};
+
+/** Stock at a glance: bottles on hand per SKU, with the urgent share, sorted by SKU label. */
+export function summarizeStock(lots: StockSummaryInput[]): StockSummaryRow[] {
+  const bySku = new Map<string, StockSummaryRow>();
+  for (const lot of lots) {
+    const row = bySku.get(lot.skuCode) ?? {
+      skuCode: lot.skuCode,
+      label: lot.label,
+      totalBottles: 0,
+      urgentBottles: 0,
+    };
+    row.totalBottles += lot.qtyRemaining;
+    if (lot.expiryStatus !== "ok") {
+      row.urgentBottles += lot.qtyRemaining;
+    }
+    bySku.set(lot.skuCode, row);
+  }
+  return [...bySku.values()].sort((a, b) => a.label.localeCompare(b.label));
+}

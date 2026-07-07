@@ -11,6 +11,7 @@ import {
   parseWriteOffQty,
   parseWriteOffReason,
   remainingAfterConsumption,
+  summarizeStock,
 } from "./logic";
 
 describe("computeExpiryDate", () => {
@@ -161,5 +162,23 @@ describe("parseWriteOffQty", () => {
     expect(() => parseWriteOffQty("0", 10)).toThrow();
     expect(() => parseWriteOffQty("1.5", 10)).toThrow();
     expect(() => parseWriteOffQty("abc", 10)).toThrow();
+  });
+});
+
+describe("summarizeStock", () => {
+  it("totals bottles per SKU and counts the urgent share", () => {
+    const rows = summarizeStock([
+      { skuCode: "OO-250", label: "Osmanthus oolong 250ml", qtyRemaining: 10, expiryStatus: "ok" },
+      { skuCode: "OO-250", label: "Osmanthus oolong 250ml", qtyRemaining: 4, expiryStatus: "soon" },
+      { skuCode: "JGT-350", label: "Jasmine green tea 350ml", qtyRemaining: 6, expiryStatus: "expired" },
+    ]);
+    expect(rows).toEqual([
+      { skuCode: "JGT-350", label: "Jasmine green tea 350ml", totalBottles: 6, urgentBottles: 6 },
+      { skuCode: "OO-250", label: "Osmanthus oolong 250ml", totalBottles: 14, urgentBottles: 4 },
+    ]);
+  });
+
+  it("returns an empty summary for no stock", () => {
+    expect(summarizeStock([])).toEqual([]);
   });
 });
