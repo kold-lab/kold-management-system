@@ -1,0 +1,370 @@
+// Kold Business Management System — canonical schema.
+// Mirrors docs/data-model.md. Money = Decimal(10,3). Never floats.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────── core ─────────────────────────────
+
+enum Role {
+  ADMIN
+  OPS
+  FINANCE
+  PARTNER
+}
+
+model User {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  name        String
+  role        Role     @default(OPS)
+  customerId  Int? // set for PARTNER portal users
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  auditLogs   AuditLog[]
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String // e.g. "brew_batch.create", "invoice.void"
+  entity    String
+  entityId  String
+  detail    Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+}
+
+// ─────────────────────────── make side ──────────────────────────
+
+model Flavour {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  isActive Boolean   @default(true)
+  products Product[]
+}
+
+model Product {
+  id         Int      @id @default(autoincrement())
+  flavourId  Int
+  flavour    Flavour  @relation(fields: [flavourId], references: [id])
+  sizeMl     Int // 250 | 350
+  skuCode    String   @unique
+  isActive   Boolean  @default(true)
+  bomLines   BomLine[]
+  brewBatches BrewBatch[]
+  orderLines OrderLine[]
+  parLevels  ParLevel[]
+  placements ConsignmentPlacement[]
+  reconLines ReconciliationLine[]
+  invoiceLines InvoiceLine[]
+  returns    Return[]
+  samples    Sample[]
+
+  @@unique([flavourId, sizeMl])
+}
+
+enum MaterialType {
+  PACKAGING // bottle, label, tag
+  INGREDIENT // tea leaves
+}
+
+model Material {
+  id                Int             @id @default(autoincrement())
+  name              String          @unique
+  type              MaterialType
+  unit              String // "pcs" | "g"
+  stockQty          Decimal         @default(0) @db.Decimal(12, 3)
+  lowStockThreshold Decimal         @default(0) @db.Decimal(12, 3)
+  isActive          Boolean         @default(true)
+  prices            MaterialPrice[]
+  bomLines          BomLine[]
+}
+
+// Append-only price history (D16). Current cost = latest effectiveFrom.
+model MaterialPrice {
+  id            Int      @id @default(autoincrement())
+  materialId    Int
+  material      Material @relation(fields: [materialId], references: [id])
+  costPerUnit   Decimal  @db.Decimal(10, 4) // RM per unit (pcs or g)
+  effectiveFrom DateTime @default(now())
+
+  @@index([materialId, effectiveFrom])
+}
+
+model BomLine {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  materialId Int
+  material   Material @relation(fields: [materialId], references: [id])
+  quantity   Decimal  @db.Decimal(10, 3) // per bottle, in material.unit
+
+  @@unique([productId, materialId])
+}
+
+enum BatchStatus {
+  COMPLETED
+  WRITTEN_OFF
+}
+
+model BrewBatch {
+  id               Int         @id @default(autoincrement())
+  productId        Int
+  product          Product     @relation(fields: [productId], references: [id])
+  brewDate         DateTime    @db.Date
+  expiryDate       DateTime    @db.Date // ALWAYS brewDate + 7d, computed in logic.ts
+  qtyPlanned       Int
+  qtyProduced      Int
+  unitCostSnapshot Decimal     @db.Decimal(10, 3) // frozen at creation (D16)
+  status           BatchStatus @default(COMPLETED)
+  createdAt        DateTime    @default(now())
+  lots             FinishedLot[]
+  placements       ConsignmentPlacement[]
+}
+
+enum LocationType {
+  WAREHOUSE
+  PARTNER_SITE
+}
+
+model Location {
+  id         Int          @id @default(autoincrement())
+  name       String
+  type       LocationType
+  customerId Int? // set for PARTNER_SITE
+  customer   Customer?    @relation(fields: [customerId], references: [id])
+  isActive   Boolean      @default(true)
+  lots       FinishedLot[]
+  placements ConsignmentPlacement[]
+  recons     Reconciliation[]
+}
+
+model FinishedLot {
+  id           Int       @id @default(autoincrement())
+  brewBatchId  Int
+  brewBatch    BrewBatch @relation(fields: [brewBatchId], references: [id])
+  locationId   Int
+  location     Location  @relation(fields: [locationId], references: [id])
+  qtyRemaining Int // never negative — enforce in logic.ts
+  expiryDate   DateTime  @db.Date
+
+  @@index([locationId, expiryDate]) // FEFO + expiry watch
+}
+
+// ─────────────────────────── sell side ──────────────────────────
+
+enum CustomerType {
+  B2C
+  B2B_PARTNER
+  PROSPECT
+}
+
+model Customer {
+  id               Int          @id @default(autoincrement())
+  name             String
+  type             CustomerType
+  phone            String?
+  email            String?
+  paymentTermsDays Int          @default(14) // D7; unused for B2C
+  isActive         Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  users            User[]
+  locations        Location[]
+  parLevels        ParLevel[]
+  orders           SalesOrder[]
+  placements       ConsignmentPlacement[]
+  recons           Reconciliation[]
+  invoices         Invoice[]
+  samples          Sample[]
+}
+
+model ParLevel {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  customer   Customer @relation(fields: [customerId], references: [id])
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  targetQty  Int
+
+  @@unique([customerId, productId])
+}
+
+enum OrderChannel {
+  B2C
+  B2B_OUTRIGHT
+}
+
+enum OrderStatus {
+  PENDING
+  BREWING
+  READY
+  FULFILLED
+  CANCELLED
+}
+
+model SalesOrder {
+  id                Int          @id @default(autoincrement())
+  customerId        Int
+  customer          Customer     @relation(fields: [customerId], references: [id])
+  channel           OrderChannel
+  status            OrderStatus  @default(PENDING)
+  expectedReadyDate DateTime?    @db.Date
+  totalAmount       Decimal      @default(0) @db.Decimal(10, 2)
+  createdAt         DateTime     @default(now())
+  lines             OrderLine[]
+  returns           Return[]
+}
+
+model OrderLine {
+  id        Int        @id @default(autoincrement())
+  orderId   Int
+  order     SalesOrder @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product    @relation(fields: [productId], references: [id])
+  qty       Int
+  unitPrice Decimal    @db.Decimal(10, 2) // snapshot at order time (D16)
+}
+
+enum ReturnResolution {
+  REPLACE
+  REFUND
+}
+
+model Return {
+  id           Int              @id @default(autoincrement())
+  salesOrderId Int
+  order        SalesOrder       @relation(fields: [salesOrderId], references: [id])
+  productId    Int
+  product      Product          @relation(fields: [productId], references: [id])
+  qty          Int
+  resolution   ReturnResolution
+  refundAmount Decimal          @default(0) @db.Decimal(10, 2)
+  reason       String?
+  createdAt    DateTime         @default(now())
+}
+
+model ConsignmentPlacement {
+  id          Int       @id @default(autoincrement())
+  customerId  Int
+  customer    Customer  @relation(fields: [customerId], references: [id])
+  locationId  Int
+  location    Location  @relation(fields: [locationId], references: [id])
+  productId   Int
+  product     Product   @relation(fields: [productId], references: [id])
+  brewBatchId Int
+  brewBatch   BrewBatch @relation(fields: [brewBatchId], references: [id])
+  qtyPlaced   Int
+  expiryDate  DateTime  @db.Date
+  placedAt    DateTime  @default(now())
+}
+
+enum ReconStatus {
+  DRAFT
+  SIGNED_OFF
+}
+
+model Reconciliation {
+  id          Int         @id @default(autoincrement())
+  customerId  Int
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  locationId  Int
+  location    Location    @relation(fields: [locationId], references: [id])
+  reconDate   DateTime    @db.Date
+  status      ReconStatus @default(DRAFT)
+  signedOffBy String?
+  createdAt   DateTime    @default(now())
+  lines       ReconciliationLine[]
+}
+
+// Invariant: qtyPlaced = qtySold + qtyExpired + qtyDamaged (D4, D5)
+model ReconciliationLine {
+  id               Int            @id @default(autoincrement())
+  reconciliationId Int
+  reconciliation   Reconciliation @relation(fields: [reconciliationId], references: [id])
+  productId        Int
+  product          Product        @relation(fields: [productId], references: [id])
+  qtyPlaced        Int
+  qtySold          Int
+  qtyExpired       Int // brand's loss — sell-through signal
+  qtyDamaged       Int // brand's loss — handling signal
+}
+
+enum InvoiceType {
+  CONSIGNMENT_MONTHLY
+  OUTRIGHT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  VOID
+}
+
+model Invoice {
+  id          Int           @id @default(autoincrement())
+  customerId  Int
+  customer    Customer      @relation(fields: [customerId], references: [id])
+  type        InvoiceType
+  status      InvoiceStatus @default(DRAFT)
+  issueDate   DateTime?     @db.Date
+  dueDate     DateTime?     @db.Date // issueDate + customer.paymentTermsDays
+  totalAmount Decimal       @default(0) @db.Decimal(10, 2)
+  createdAt   DateTime      @default(now())
+  lines       InvoiceLine[]
+  payments    Payment[]
+  creditNotes CreditNote[]
+}
+
+model InvoiceLine {
+  id        Int     @id @default(autoincrement())
+  invoiceId Int
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  qty       Int
+  unitPrice Decimal @db.Decimal(10, 2)
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  invoiceId Int
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  amount    Decimal  @db.Decimal(10, 2)
+  paidDate  DateTime @db.Date
+  method    String // "bank_transfer" | "cash" | "fpx" | ...
+  createdAt DateTime @default(now())
+}
+
+model CreditNote {
+  id         Int      @id @default(autoincrement())
+  invoiceId  Int
+  invoice    Invoice  @relation(fields: [invoiceId], references: [id])
+  amount     Decimal  @db.Decimal(10, 2)
+  reason     String
+  issuedDate DateTime @db.Date
+  createdAt  DateTime @default(now())
+}
+
+// Acquisition cost, outside COGS (D8). Decrements stock via FinishedLot.
+model Sample {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  customer   Customer @relation(fields: [customerId], references: [id])
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  qty        Int
+  totalCost  Decimal  @db.Decimal(10, 3) // qty × unit cost snapshot
+  sampleDate DateTime @db.Date
+  notes      String?
+}
