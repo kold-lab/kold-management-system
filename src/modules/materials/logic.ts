@@ -1,5 +1,5 @@
 // Pure functions only — no DB calls, no side effects. See CLAUDE.md rule 4.
-import { Decimal } from "@prisma/client/runtime/library";
+import { Decimal } from "decimal.js";
 
 export type PricePoint = {
   costPerUnit: Decimal;

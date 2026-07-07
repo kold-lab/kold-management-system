@@ -1,5 +1,5 @@
 // Pure functions only — no DB calls, no side effects. See CLAUDE.md rule 4.
-import { Decimal } from "@prisma/client/runtime/library";
+import { Decimal } from "decimal.js";
 
 /** D2 — every bottle expires 7 days after brew date. */
 export const SHELF_LIFE_DAYS = 7;

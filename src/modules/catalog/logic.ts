@@ -1,5 +1,5 @@
 // Pure functions only — no DB calls, no side effects. See CLAUDE.md rule 4.
-import { Decimal } from "@prisma/client/runtime/library";
+import { Decimal } from "decimal.js";
 
 /** Every flavour is bottled in both sizes; adding a flavour generates both SKUs. */
 export const SIZES_ML = [250, 350] as const;
