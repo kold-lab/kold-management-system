@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -38,11 +39,16 @@ export function CatalogTable({ flavours }: { flavours: FlavourListItem[] }) {
               <TableCell className="font-mono text-sm">{sku.skuCode}</TableCell>
               <TableCell>{sku.sizeMl}ml</TableCell>
               <TableCell>
-                {sku.hasRecipe ? (
-                  <Badge variant="success">Recipe set</Badge>
-                ) : (
-                  <Badge variant="warning">No recipe</Badge>
-                )}
+                <Link
+                  href={`/catalog/${sku.id}/recipe`}
+                  className="inline-flex"
+                >
+                  {sku.hasRecipe ? (
+                    <Badge variant="success">Recipe set</Badge>
+                  ) : (
+                    <Badge variant="warning">No recipe</Badge>
+                  )}
+                </Link>
               </TableCell>
             </TableRow>
           ))

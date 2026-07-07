@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { parseFlavourNameInput, skuCode, SIZES_ML } from "./logic";
+import { Decimal } from "@prisma/client/runtime/library";
+import {
+  lineCost,
+  parseFlavourNameInput,
+  parseQuantityInput,
+  recipeUnitCost,
+  skuCode,
+  SIZES_ML,
+} from "./logic";
 
 describe("skuCode", () => {
   it("builds initials + size, matching the seed convention", () => {
@@ -43,5 +51,60 @@ describe("parseFlavourNameInput", () => {
   it("rejects unsupported characters", () => {
     expect(() => parseFlavourNameInput("DROP TABLE;")).toThrow();
     expect(() => parseFlavourNameInput("<script>")).toThrow();
+  });
+});
+
+describe("parseQuantityInput", () => {
+  it("parses a valid positive decimal string", () => {
+    expect(parseQuantityInput("2.5").toString()).toBe("2.5");
+  });
+
+  it("rejects blank, non-numeric, zero, and negative input", () => {
+    expect(() => parseQuantityInput("  ")).toThrow();
+    expect(() => parseQuantityInput("abc")).toThrow();
+    expect(() => parseQuantityInput("0")).toThrow();
+    expect(() => parseQuantityInput("-2.5")).toThrow();
+  });
+});
+
+describe("lineCost", () => {
+  it("multiplies quantity by current cost", () => {
+    expect(lineCost(new Decimal("2.5"), new Decimal("0.06"))!.toString()).toBe(
+      "0.15"
+    );
+  });
+
+  it("returns null when the material has no price", () => {
+    expect(lineCost(new Decimal("2.5"), null)).toBeNull();
+  });
+});
+
+describe("recipeUnitCost", () => {
+  it("matches the documented 250ml jasmine unit cost (RM1.64, docs/decisions.md)", () => {
+    const lines = [
+      { quantity: new Decimal("1"), costPerUnit: new Decimal("1.01") }, // bottle
+      { quantity: new Decimal("1"), costPerUnit: new Decimal("0.23") }, // label
+      { quantity: new Decimal("1"), costPerUnit: new Decimal("0.25") }, // tag
+      { quantity: new Decimal("2.5"), costPerUnit: new Decimal("0.06") }, // tea
+    ];
+    expect(recipeUnitCost(lines)!.toString()).toBe("1.64");
+  });
+
+  it("matches the documented 350ml oolong unit cost (RM2.283, docs/decisions.md)", () => {
+    const lines = [
+      { quantity: new Decimal("1"), costPerUnit: new Decimal("1.446") },
+      { quantity: new Decimal("1"), costPerUnit: new Decimal("0.23") },
+      { quantity: new Decimal("1"), costPerUnit: new Decimal("0.25") },
+      { quantity: new Decimal("3.5"), costPerUnit: new Decimal("0.102") },
+    ];
+    expect(recipeUnitCost(lines)!.toString()).toBe("2.283");
+  });
+
+  it("returns null when any line's material lacks a price", () => {
+    const lines = [
+      { quantity: new Decimal("1"), costPerUnit: new Decimal("1.01") },
+      { quantity: new Decimal("2.5"), costPerUnit: null },
+    ];
+    expect(recipeUnitCost(lines)).toBeNull();
   });
 });
