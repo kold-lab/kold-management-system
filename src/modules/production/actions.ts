@@ -1,0 +1,132 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { LocationType } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { getRecipe } from "@/modules/catalog";
+import { listMaterialCostsOn } from "@/modules/materials";
+import {
+  batchUnitCost,
+  computeExpiryDate,
+  consumedQty,
+  parseBottleCountInput,
+  parseBrewDateInput,
+} from "./logic";
+
+export type CreateBatchState = { error?: string };
+
+/**
+ * Records a brew: creates the batch (expiry computed, unit cost frozen from
+ * prices effective on brew date — invariant 4), puts the bottles in a
+ * warehouse FinishedLot, and consumes materials per BOM × actual yield.
+ */
+export async function createBrewBatchAction(
+  _prevState: CreateBatchState,
+  formData: FormData
+): Promise<CreateBatchState> {
+  const productId = Number(formData.get("productId"));
+  if (!Number.isInteger(productId) || productId <= 0) {
+    return { error: "Pick a SKU." };
+  }
+
+  let brewDate, qtyPlanned, qtyProduced;
+  try {
+    brewDate = parseBrewDateInput(String(formData.get("brewDate") ?? ""));
+    qtyPlanned = parseBottleCountInput(
+      String(formData.get("qtyPlanned") ?? ""),
+      "planned bottles"
+    );
+    qtyProduced = parseBottleCountInput(
+      String(formData.get("qtyProduced") ?? ""),
+      "actual bottles"
+    );
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Invalid input." };
+  }
+
+  const recipe = await getRecipe(productId);
+  if (!recipe) return { error: "Unknown SKU." };
+  if (recipe.lines.length === 0) {
+    return { error: `${recipe.skuCode} has no recipe yet — set it in the catalog first.` };
+  }
+
+  const costs = await listMaterialCostsOn(brewDate);
+  const unitCost = batchUnitCost(
+    recipe.lines.map((l) => ({
+      quantity: l.quantity,
+      costPerUnit: costs.get(l.materialId) ?? null,
+    }))
+  );
+  if (unitCost === null) {
+    return {
+      error:
+        "A material in this recipe has no price effective on the brew date, so the cost snapshot can't be frozen.",
+    };
+  }
+
+  const warehouse = await prisma.location.findFirst({
+    where: { type: LocationType.WAREHOUSE, isActive: true },
+  });
+  if (!warehouse) {
+    return { error: "No warehouse location exists — seed or create one first." };
+  }
+
+  const expiryDate = computeExpiryDate(brewDate);
+  const consumption = recipe.lines.map((l) => ({
+    materialId: l.materialId,
+    materialName: l.materialName,
+    unit: l.unit,
+    consumed: consumedQty(l.quantity, qtyProduced),
+  }));
+
+  await prisma.$transaction(async (tx) => {
+    const batch = await tx.brewBatch.create({
+      data: {
+        productId,
+        brewDate,
+        expiryDate,
+        qtyPlanned,
+        qtyProduced,
+        unitCostSnapshot: unitCost,
+        lots: {
+          create: {
+            locationId: warehouse.id,
+            qtyRemaining: qtyProduced,
+            expiryDate,
+          },
+        },
+      },
+    });
+    for (const line of consumption) {
+      await tx.material.update({
+        where: { id: line.materialId },
+        data: { stockQty: { decrement: line.consumed } },
+      });
+    }
+    await tx.auditLog.create({
+      data: {
+        action: "brew_batch.create",
+        entity: "BrewBatch",
+        entityId: String(batch.id),
+        detail: {
+          skuCode: recipe.skuCode,
+          brewDate: brewDate.toISOString().slice(0, 10),
+          expiryDate: expiryDate.toISOString().slice(0, 10),
+          qtyPlanned,
+          qtyProduced,
+          unitCostSnapshot: unitCost.toString(),
+          consumed: consumption.map((c) => ({
+            material: c.materialName,
+            qty: c.consumed.toString(),
+            unit: c.unit,
+          })),
+        },
+      },
+    });
+  });
+
+  revalidatePath("/production");
+  revalidatePath("/materials");
+  redirect("/production");
+}

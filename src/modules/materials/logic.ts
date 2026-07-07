@@ -14,6 +14,25 @@ export function currentCost(prices: PricePoint[]): Decimal | null {
   ).costPerUnit;
 }
 
+/**
+ * Price effective on a calendar day = latest row with effectiveFrom on or
+ * before the end of that day (invariant 4 — batch costs use the price
+ * effective at brew date). Null when no price existed yet.
+ */
+export function priceEffectiveOn(prices: PricePoint[], day: Date): Decimal | null {
+  const endOfDay = new Date(
+    Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 23, 59, 59, 999)
+  );
+  let effective: PricePoint | null = null;
+  for (const p of prices) {
+    if (p.effectiveFrom > endOfDay) continue;
+    if (effective === null || p.effectiveFrom > effective.effectiveFrom) {
+      effective = p;
+    }
+  }
+  return effective?.costPerUnit ?? null;
+}
+
 /** Low-stock indicator (D12): crossed when stock is at or below the reorder threshold. */
 export function isLowStock(stockQty: Decimal, lowStockThreshold: Decimal): boolean {
   return stockQty.lessThanOrEqualTo(lowStockThreshold);

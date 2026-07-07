@@ -32,6 +32,7 @@ export default function RootLayout({
           <nav className="flex gap-4 text-sm font-semibold text-brand-deep">
             <Link href="/materials">Materials</Link>
             <Link href="/catalog">Catalog</Link>
+            <Link href="/production">Production</Link>
           </nav>
         </header>
         <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">{children}</main>
