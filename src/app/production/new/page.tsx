@@ -1,12 +1,8 @@
 import Link from "next/link";
 import { listNewBatchProducts, NewBatchForm } from "@/modules/production";
+import { todayMYT } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
-
-/** Today as a calendar day in Malaysia time (UTC+8). */
-function todayMYT(): string {
-  return new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10);
-}
 
 export default async function NewBatchPage() {
   const products = await listNewBatchProducts();
@@ -34,7 +30,10 @@ export default async function NewBatchPage() {
           .
         </p>
       ) : (
-        <NewBatchForm products={products} defaultBrewDate={todayMYT()} />
+        <NewBatchForm
+          products={products}
+          defaultBrewDate={todayMYT().toISOString().slice(0, 10)}
+        />
       )}
     </div>
   );

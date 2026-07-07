@@ -2,7 +2,9 @@ import "server-only";
 import type { Decimal } from "@prisma/client/runtime/library";
 import type { BatchStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { todayMYT } from "@/lib/dates";
 import { listFlavours, getRecipe } from "@/modules/catalog";
+import { daysToExpiry, expiryStatus, type ExpiryStatus } from "./logic";
 
 export type NewBatchLine = {
   materialId: number;
@@ -81,4 +83,43 @@ export async function listBrewBatches(): Promise<BrewBatchListItem[]> {
     unitCostSnapshot: b.unitCostSnapshot,
     status: b.status,
   }));
+}
+
+export type FinishedLotItem = {
+  id: number;
+  label: string;
+  skuCode: string;
+  locationName: string;
+  brewDate: Date;
+  expiryDate: Date;
+  qtyRemaining: number;
+  daysToExpiry: number;
+  expiryStatus: ExpiryStatus;
+};
+
+/** Finished stock with bottles remaining, FEFO order (soonest expiry first). */
+export async function listFinishedLots(): Promise<FinishedLotItem[]> {
+  const today = todayMYT();
+  const lots = await prisma.finishedLot.findMany({
+    where: { qtyRemaining: { gt: 0 } },
+    include: {
+      brewBatch: { include: { product: { include: { flavour: true } } } },
+      location: true,
+    },
+    orderBy: [{ expiryDate: "asc" }, { id: "asc" }],
+  });
+  return lots.map((lot) => {
+    const daysLeft = daysToExpiry(lot.expiryDate, today);
+    return {
+      id: lot.id,
+      label: `${lot.brewBatch.product.flavour.name} ${lot.brewBatch.product.sizeMl}ml`,
+      skuCode: lot.brewBatch.product.skuCode,
+      locationName: lot.location.name,
+      brewDate: lot.brewBatch.brewDate,
+      expiryDate: lot.expiryDate,
+      qtyRemaining: lot.qtyRemaining,
+      daysToExpiry: daysLeft,
+      expiryStatus: expiryStatus(daysLeft),
+    };
+  });
 }

@@ -4,8 +4,12 @@ import {
   batchUnitCost,
   computeExpiryDate,
   consumedQty,
+  daysToExpiry,
+  expiryStatus,
   parseBottleCountInput,
   parseBrewDateInput,
+  parseWriteOffQty,
+  parseWriteOffReason,
   remainingAfterConsumption,
 } from "./logic";
 
@@ -102,5 +106,60 @@ describe("remainingAfterConsumption", () => {
     );
     expect(remaining.isNegative()).toBe(true);
     expect(remaining.toString()).toBe("-15");
+  });
+});
+
+describe("daysToExpiry", () => {
+  const today = new Date("2026-07-07T00:00:00.000Z");
+
+  it("counts whole days until expiry", () => {
+    expect(daysToExpiry(new Date("2026-07-14T00:00:00.000Z"), today)).toBe(7);
+    expect(daysToExpiry(new Date("2026-07-08T00:00:00.000Z"), today)).toBe(1);
+  });
+
+  it("is 0 on expiry day and negative after", () => {
+    expect(daysToExpiry(new Date("2026-07-07T00:00:00.000Z"), today)).toBe(0);
+    expect(daysToExpiry(new Date("2026-07-05T00:00:00.000Z"), today)).toBe(-2);
+  });
+});
+
+describe("expiryStatus", () => {
+  it("buckets days-left into expired / today / soon / ok", () => {
+    expect(expiryStatus(-1)).toBe("expired");
+    expect(expiryStatus(0)).toBe("today");
+    expect(expiryStatus(1)).toBe("soon");
+    expect(expiryStatus(2)).toBe("soon");
+    expect(expiryStatus(3)).toBe("ok");
+    expect(expiryStatus(7)).toBe("ok");
+  });
+});
+
+describe("parseWriteOffReason", () => {
+  it("accepts the known reason codes", () => {
+    expect(parseWriteOffReason("expired")).toBe("expired");
+    expect(parseWriteOffReason("damaged")).toBe("damaged");
+    expect(parseWriteOffReason("other")).toBe("other");
+  });
+
+  it("rejects anything else", () => {
+    expect(() => parseWriteOffReason("")).toThrow();
+    expect(() => parseWriteOffReason("shrinkage")).toThrow();
+  });
+});
+
+describe("parseWriteOffQty", () => {
+  it("parses a quantity within the lot's remaining bottles", () => {
+    expect(parseWriteOffQty("5", 10)).toBe(5);
+    expect(parseWriteOffQty("10", 10)).toBe(10);
+  });
+
+  it("never lets qtyRemaining go negative (invariant 3)", () => {
+    expect(() => parseWriteOffQty("11", 10)).toThrow();
+  });
+
+  it("rejects zero, decimals, and junk", () => {
+    expect(() => parseWriteOffQty("0", 10)).toThrow();
+    expect(() => parseWriteOffQty("1.5", 10)).toThrow();
+    expect(() => parseWriteOffQty("abc", 10)).toThrow();
   });
 });

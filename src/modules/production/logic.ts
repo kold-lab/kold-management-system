@@ -71,3 +71,55 @@ export function remainingAfterConsumption(
 ): Decimal {
   return stockQty.minus(consumed);
 }
+
+/** Whole days from today until expiry; negative once expired. Both dates are UTC-midnight days. */
+export function daysToExpiry(expiryDate: Date, today: Date): number {
+  return Math.round((expiryDate.getTime() - today.getTime()) / 86_400_000);
+}
+
+export type ExpiryStatus = "expired" | "today" | "soon" | "ok";
+
+/**
+ * Expiry-watch bucket. A bottle sold on its expiry day gives the customer
+ * zero fresh days, so day 0 already reads as urgent ("today"), and ≤2 days
+ * out is the restock/clearance window ("soon").
+ */
+export function expiryStatus(daysLeft: number): ExpiryStatus {
+  if (daysLeft < 0) return "expired";
+  if (daysLeft === 0) return "today";
+  if (daysLeft <= 2) return "soon";
+  return "ok";
+}
+
+export const WRITE_OFF_REASONS = ["expired", "damaged", "other"] as const;
+export type WriteOffReason = (typeof WRITE_OFF_REASONS)[number];
+
+/** Validates a write-off reason from form input. Throws on invalid input. */
+export function parseWriteOffReason(raw: string): WriteOffReason {
+  if ((WRITE_OFF_REASONS as readonly string[]).includes(raw)) {
+    return raw as WriteOffReason;
+  }
+  throw new Error("Pick a write-off reason.");
+}
+
+/**
+ * Validates a write-off quantity against the lot's remaining bottles.
+ * A lot's qtyRemaining can never go negative (invariant 3). Throws on
+ * invalid input.
+ */
+export function parseWriteOffQty(raw: string, qtyRemaining: number): number {
+  const trimmed = raw.trim();
+  if (!/^\d+$/.test(trimmed)) {
+    throw new Error("Enter the write-off as a whole number of bottles.");
+  }
+  const qty = Number(trimmed);
+  if (qty <= 0) {
+    throw new Error("Write off at least 1 bottle.");
+  }
+  if (qty > qtyRemaining) {
+    throw new Error(
+      `Only ${qtyRemaining} bottle${qtyRemaining === 1 ? "" : "s"} remain in this lot.`
+    );
+  }
+  return qty;
+}

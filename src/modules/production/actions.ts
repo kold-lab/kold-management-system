@@ -12,6 +12,8 @@ import {
   consumedQty,
   parseBottleCountInput,
   parseBrewDateInput,
+  parseWriteOffQty,
+  parseWriteOffReason,
 } from "./logic";
 
 export type CreateBatchState = { error?: string };
@@ -129,4 +131,72 @@ export async function createBrewBatchAction(
   revalidatePath("/production");
   revalidatePath("/materials");
   redirect("/production");
+}
+
+export type WriteOffState = { error?: string };
+
+/**
+ * Writes off bottles from a finished lot with a reason code. Stock movements
+ * are never hard-deleted or edited — the decrement plus its AuditLog entry
+ * IS the record (CLAUDE.md rule 5). qtyRemaining is re-checked inside the
+ * transaction so it can never go negative (invariant 3).
+ */
+export async function writeOffLotAction(
+  _prevState: WriteOffState,
+  formData: FormData
+): Promise<WriteOffState> {
+  const lotId = Number(formData.get("lotId"));
+  if (!Number.isInteger(lotId) || lotId <= 0) {
+    return { error: "Unknown lot." };
+  }
+
+  let reason;
+  try {
+    reason = parseWriteOffReason(String(formData.get("reason") ?? ""));
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Invalid reason." };
+  }
+  const note = String(formData.get("note") ?? "").trim();
+  const rawQty = String(formData.get("qty") ?? "");
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const lot = await tx.finishedLot.findUnique({
+        where: { id: lotId },
+        include: {
+          brewBatch: { include: { product: true } },
+          location: true,
+        },
+      });
+      if (!lot) throw new Error("Lot not found.");
+
+      const qty = parseWriteOffQty(rawQty, lot.qtyRemaining);
+
+      await tx.finishedLot.update({
+        where: { id: lot.id },
+        data: { qtyRemaining: { decrement: qty } },
+      });
+      await tx.auditLog.create({
+        data: {
+          action: "finished_lot.write_off",
+          entity: "FinishedLot",
+          entityId: String(lot.id),
+          detail: {
+            skuCode: lot.brewBatch.product.skuCode,
+            location: lot.location.name,
+            qty,
+            reason,
+            ...(note ? { note } : {}),
+            remainingAfter: lot.qtyRemaining - qty,
+            unitCostSnapshot: lot.brewBatch.unitCostSnapshot.toString(),
+          },
+        },
+      });
+    });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Write-off failed." };
+  }
+
+  revalidatePath("/stock");
+  return {};
 }
