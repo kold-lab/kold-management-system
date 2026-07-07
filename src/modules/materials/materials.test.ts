@@ -2,9 +2,14 @@ import { describe, expect, it } from "vitest";
 import { Decimal } from "@prisma/client/runtime/library";
 import {
   currentCost,
+  deactivationBlockReason,
   isLowStock,
+  parseNewMaterialInput,
   parsePriceInput,
+  parseQuantityInput,
+  parseThresholdInput,
   priceEffectiveOn,
+  receiveStock,
 } from "./logic";
 
 describe("currentCost", () => {
@@ -51,6 +56,85 @@ describe("isLowStock", () => {
 
   it("does not flag stock above the threshold", () => {
     expect(isLowStock(new Decimal("51"), new Decimal("50"))).toBe(false);
+  });
+});
+
+describe("receiveStock", () => {
+  it("adds the received quantity to the running balance", () => {
+    expect(receiveStock(new Decimal("10.5"), new Decimal("2.25")).toString()).toBe("12.75");
+  });
+
+  it("recovers a negative balance (pre-receive-flow brews drove stock below zero)", () => {
+    expect(receiveStock(new Decimal("-70"), new Decimal("500")).toString()).toBe("430");
+  });
+
+  it("keeps decimal precision exactly (no float drift)", () => {
+    expect(receiveStock(new Decimal("0.1"), new Decimal("0.2")).toString()).toBe("0.3");
+  });
+});
+
+describe("parseQuantityInput", () => {
+  it("parses a valid quantity", () => {
+    expect(parseQuantityInput("500").toString()).toBe("500");
+    expect(parseQuantityInput("2.125").toString()).toBe("2.125");
+  });
+
+  it("rejects blank, non-numeric, zero, and negative input", () => {
+    expect(() => parseQuantityInput(" ")).toThrow();
+    expect(() => parseQuantityInput("abc")).toThrow();
+    expect(() => parseQuantityInput("0")).toThrow();
+    expect(() => parseQuantityInput("-5")).toThrow();
+  });
+
+  it("rejects more than 3 decimal places (stockQty is Decimal(12,3))", () => {
+    expect(() => parseQuantityInput("1.0001")).toThrow();
+  });
+});
+
+describe("parseThresholdInput", () => {
+  it("treats empty input as zero", () => {
+    expect(parseThresholdInput("  ").toString()).toBe("0");
+  });
+
+  it("accepts zero and positive values", () => {
+    expect(parseThresholdInput("0").toString()).toBe("0");
+    expect(parseThresholdInput("50").toString()).toBe("50");
+  });
+
+  it("rejects negative and non-numeric input", () => {
+    expect(() => parseThresholdInput("-1")).toThrow();
+    expect(() => parseThresholdInput("abc")).toThrow();
+  });
+});
+
+describe("parseNewMaterialInput", () => {
+  it("trims the name and passes through valid type and unit", () => {
+    expect(parseNewMaterialInput("  Honey ", "INGREDIENT", "g")).toEqual({
+      name: "Honey",
+      type: "INGREDIENT",
+      unit: "g",
+    });
+  });
+
+  it("rejects a blank name", () => {
+    expect(() => parseNewMaterialInput("   ", "PACKAGING", "pcs")).toThrow();
+  });
+
+  it("rejects an unknown type or unit", () => {
+    expect(() => parseNewMaterialInput("Honey", "LIQUID", "g")).toThrow();
+    expect(() => parseNewMaterialInput("Honey", "INGREDIENT", "ml")).toThrow();
+  });
+});
+
+describe("deactivationBlockReason", () => {
+  it("allows deactivation when no active recipe uses the material", () => {
+    expect(deactivationBlockReason([])).toBeNull();
+  });
+
+  it("blocks deactivation and names the recipes still using it", () => {
+    const reason = deactivationBlockReason(["Oolong 350ml", "Oolong 250ml"]);
+    expect(reason).toContain("Oolong 350ml");
+    expect(reason).toContain("Oolong 250ml");
   });
 });
 

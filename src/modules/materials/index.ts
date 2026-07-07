@@ -1,5 +1,16 @@
 export { listMaterials, listMaterialCostsOn } from "./queries";
 export type { MaterialListItem } from "./queries";
-export { updateMaterialPriceAction } from "./actions";
-export type { UpdatePriceState } from "./actions";
+export {
+  createMaterialAction,
+  deactivateMaterialAction,
+  receiveMaterialStockAction,
+  updateMaterialPriceAction,
+} from "./actions";
+export type {
+  CreateMaterialState,
+  DeactivateMaterialState,
+  ReceiveStockState,
+  UpdatePriceState,
+} from "./actions";
 export { MaterialsTable } from "./components/MaterialsTable";
+export { AddMaterialDialog } from "./components/AddMaterialDialog";

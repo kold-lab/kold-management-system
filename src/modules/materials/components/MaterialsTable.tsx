@@ -9,6 +9,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { MaterialListItem } from "../queries";
 import { UpdatePriceDialog } from "./UpdatePriceDialog";
+import { ReceiveStockDialog } from "./ReceiveStockDialog";
+import { DeactivateMaterialDialog } from "./DeactivateMaterialDialog";
 
 const TYPE_LABEL: Record<MaterialListItem["type"], string> = {
   PACKAGING: "Packaging",
@@ -60,12 +62,24 @@ export function MaterialsTable({ materials }: { materials: MaterialListItem[] })
                 )}
               </TableCell>
               <TableCell>
-                <UpdatePriceDialog
-                  materialId={m.id}
-                  materialName={m.name}
-                  currentCostLabel={costLabel}
-                  unit={m.unit}
-                />
+                <div className="flex flex-wrap justify-end gap-2">
+                  <ReceiveStockDialog
+                    materialId={m.id}
+                    materialName={m.name}
+                    stockLabel={m.stockQty.toString()}
+                    unit={m.unit}
+                  />
+                  <UpdatePriceDialog
+                    materialId={m.id}
+                    materialName={m.name}
+                    currentCostLabel={costLabel}
+                    unit={m.unit}
+                  />
+                  <DeactivateMaterialDialog
+                    materialId={m.id}
+                    materialName={m.name}
+                  />
+                </div>
               </TableCell>
             </TableRow>
           );
