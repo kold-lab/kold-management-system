@@ -48,6 +48,15 @@ Never contradict these in code without updating this file first.
   offered in one size only, some in both — the catalog must support
   deactivating a single size of a flavour without hiding the other.
   Placement and weekly-count screens operate per SKU, never per flavour.
+- **D19 — Placement picking: freshest-first with stranding warning
+  (2026-07-08).** When placing consignment stock, the app defaults to the
+  freshest batch (longest partner shelf life — expired-at-partner is the
+  brand's loss, D4), changeable per placement. When the default would
+  strand older sellable bottles in the warehouse (B2C is brew-to-order,
+  so warehouse stock has no other outlet), the screen shows a warning so
+  choosing the fresh batch is a conscious decision. This supersedes
+  strict FEFO for *placement*; FEFO still governs expiry watch, stock
+  ordering, and warehouse operations.
 - **D18 — Official documents (2026-07-08).** Delivery notes and invoices
   are issued under the registered company name "kold brew hub"
   (JR0189682-H); "kold" / "kold ms" is brand/app naming only. Documents

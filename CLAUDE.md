@@ -33,8 +33,9 @@ contradict it silently; if a task conflicts with it, stop and flag the conflict.
    `unitCostSnapshot` at creation. Order/invoice lines snapshot
    `unitPrice`. Never recompute historical figures from current prices.
 7. **Expiry is computed, never typed.** `expiryDate = brewDate + 7 days`,
-   derived in code. Picking and placement follow FEFO (first expired,
-   first out).
+   derived in code. Expiry watch, stock ordering, and warehouse ops
+   follow FEFO (first expired, first out). Consignment placement is the
+   exception: default freshest batch with a stranding warning (D19).
 
 ## Conventions
 
