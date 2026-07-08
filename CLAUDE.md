@@ -49,7 +49,9 @@ contradict it silently; if a task conflicts with it, stop and flag the conflict.
 
 ## Current phase
 
-Phase 1 (make side): auth/roles, catalog, materials + price history,
-recipes, brew batches, dated stock, expiry watch, write-offs, dashboard.
-Do NOT build customers, orders, or invoicing yet — folders exist as
-placeholders for Phases 2–3. See `docs/phases.md`.
+Phase 2 (consignment), since 2026-07-08: partners, placements +
+delivery notes, phone-first weekly count screen, reconciliation
+sign-off, par levels, consignment stock per partner site. Phase 1
+(make side) is live and being dogfooded in parallel. Do NOT build
+orders, invoicing, or payments yet — those are Phase 3. See
+`docs/phases.md` and D17/D18 in `docs/decisions.md`.

@@ -28,6 +28,12 @@ Deep Blue.
 | `warning` | `#B87A1E` | `#FBF1DE` | Expiring soon, low stock, AR due  |
 | `danger`  | `#C24040` | `#FBEAEA` | Expired, overdue, write-off       |
 
+## Wordmark casing
+
+The brand name is always all-lowercase in user-facing text: **kold**,
+**kold ms**, **kold brew hub** — never "Kold" (owner decision 2026-07-08).
+Code identifiers and prose in internal docs are exempt.
+
 ## Typography & shape
 
 - Font: **Nunito** via `next/font` (weights 300/400/600/700), fallback

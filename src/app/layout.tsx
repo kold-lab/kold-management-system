@@ -12,7 +12,7 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: "kold ms",
-  description: "Internal operations for Kold ready-to-drink cold brew tea.",
+  description: "Internal operations for kold ready-to-drink cold brew tea.",
 };
 
 export default function RootLayout({
@@ -37,6 +37,7 @@ export default function RootLayout({
               <Link href="/catalog">Catalog</Link>
               <Link href="/production">Production</Link>
               <Link href="/stock">Stock</Link>
+              <Link href="/partners">Partners</Link>
             </nav>
             <div className="shrink-0">
               <SignedIn>

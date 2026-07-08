@@ -3,7 +3,7 @@
 Each phase is independently useful the day it ships. Do not pull later-phase
 features forward — shippable slices beat half-built breadth.
 
-## Phase 1 — foundation & make side  ← CURRENT
+## Phase 1 — foundation & make side  ✅ SHIPPED (2026-07-08)
 
 Scope: project scaffold, Clerk auth + roles, catalog (flavours/products),
 materials with price history + reorder thresholds, recipes (BOM), brew
@@ -24,7 +24,7 @@ Screens (build order):
 
 Out of scope: customers, orders, invoices, consignment, notifications.
 
-## Phase 2 — consignment
+## Phase 2 — consignment  ← CURRENT (started 2026-07-08)
 
 Partners (CRM basics), placements, weekly count screen (phone-first),
 par-level restock suggestions, reconciliation sign-off, waste split
