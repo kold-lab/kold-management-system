@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { requireWriter } from "@/lib/auth";
 import {
   deactivationBlockReason,
   parseNewMaterialInput,
@@ -25,6 +26,13 @@ export async function receiveMaterialStockAction(
   _prevState: ReceiveStockState,
   formData: FormData
 ): Promise<ReceiveStockState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
   const materialId = Number(formData.get("materialId"));
   if (!Number.isInteger(materialId) || materialId <= 0) {
     return { error: "Unknown material." };
@@ -64,6 +72,7 @@ export async function receiveMaterialStockAction(
       : []),
     prisma.auditLog.create({
       data: {
+        userId: actor.id,
         action: "material.receive_stock",
         entity: "Material",
         entityId: String(materialId),
@@ -88,6 +97,13 @@ export async function createMaterialAction(
   _prevState: CreateMaterialState,
   formData: FormData
 ): Promise<CreateMaterialState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
   let input, cost, threshold;
   try {
     input = parseNewMaterialInput(
@@ -122,6 +138,7 @@ export async function createMaterialAction(
     });
     await tx.auditLog.create({
       data: {
+        userId: actor.id,
         action: "material.create",
         entity: "Material",
         entityId: String(material.id),
@@ -149,6 +166,13 @@ export async function deactivateMaterialAction(
   _prevState: DeactivateMaterialState,
   formData: FormData
 ): Promise<DeactivateMaterialState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
   const materialId = Number(formData.get("materialId"));
   if (!Number.isInteger(materialId) || materialId <= 0) {
     return { error: "Unknown material." };
@@ -183,6 +207,7 @@ export async function deactivateMaterialAction(
     }),
     prisma.auditLog.create({
       data: {
+        userId: actor.id,
         action: "material.deactivate",
         entity: "Material",
         entityId: String(materialId),
@@ -200,6 +225,13 @@ export async function updateMaterialPriceAction(
   _prevState: UpdatePriceState,
   formData: FormData
 ): Promise<UpdatePriceState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
   const materialId = Number(formData.get("materialId"));
   if (!Number.isInteger(materialId) || materialId <= 0) {
     return { error: "Unknown material." };
@@ -223,6 +255,7 @@ export async function updateMaterialPriceAction(
     }),
     prisma.auditLog.create({
       data: {
+        userId: actor.id,
         action: "material.update_price",
         entity: "Material",
         entityId: String(materialId),

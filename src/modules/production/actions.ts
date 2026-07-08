@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { LocationType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { requireWriter } from "@/lib/auth";
 import { getRecipe } from "@/modules/catalog";
 import { listMaterialCostsOn } from "@/modules/materials";
 import {
@@ -27,6 +28,13 @@ export async function createBrewBatchAction(
   _prevState: CreateBatchState,
   formData: FormData
 ): Promise<CreateBatchState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
   const productId = Number(formData.get("productId"));
   if (!Number.isInteger(productId) || productId <= 0) {
     return { error: "Pick a SKU." };
@@ -108,6 +116,7 @@ export async function createBrewBatchAction(
     }
     await tx.auditLog.create({
       data: {
+        userId: actor.id,
         action: "brew_batch.create",
         entity: "BrewBatch",
         entityId: String(batch.id),
@@ -145,6 +154,13 @@ export async function writeOffLotAction(
   _prevState: WriteOffState,
   formData: FormData
 ): Promise<WriteOffState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
   const lotId = Number(formData.get("lotId"));
   if (!Number.isInteger(lotId) || lotId <= 0) {
     return { error: "Unknown lot." };
@@ -178,6 +194,7 @@ export async function writeOffLotAction(
       });
       await tx.auditLog.create({
         data: {
+          userId: actor.id,
           action: "finished_lot.write_off",
           entity: "FinishedLot",
           entityId: String(lot.id),

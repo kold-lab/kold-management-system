@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { requireWriter } from "@/lib/auth";
 import {
   parseFlavourNameInput,
   parseQuantityInput,
@@ -22,6 +23,13 @@ export async function addFlavourAction(
   _prevState: AddFlavourState,
   formData: FormData
 ): Promise<AddFlavourState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
   let name;
   try {
     name = parseFlavourNameInput(String(formData.get("name") ?? ""));
@@ -46,6 +54,7 @@ export async function addFlavourAction(
       });
       await tx.auditLog.create({
         data: {
+          userId: actor.id,
           action: "catalog.add_flavour",
           entity: "Flavour",
           entityId: String(flavour.id),
@@ -77,6 +86,13 @@ export async function setBomLineAction(
   _prevState: BomLineState,
   formData: FormData
 ): Promise<BomLineState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
   const productId = parseId(formData.get("productId"));
   const materialId = parseId(formData.get("materialId"));
   if (!productId) return { error: "Unknown product." };
@@ -104,6 +120,7 @@ export async function setBomLineAction(
     }),
     prisma.auditLog.create({
       data: {
+        userId: actor.id,
         action: "catalog.set_bom_line",
         entity: "Product",
         entityId: String(productId),
@@ -127,6 +144,13 @@ export async function removeBomLineAction(
   _prevState: BomLineState,
   formData: FormData
 ): Promise<BomLineState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
   const productId = parseId(formData.get("productId"));
   const materialId = parseId(formData.get("materialId"));
   if (!productId || !materialId) return { error: "Unknown recipe line." };
@@ -141,6 +165,7 @@ export async function removeBomLineAction(
     prisma.bomLine.delete({ where: { id: line.id } }),
     prisma.auditLog.create({
       data: {
+        userId: actor.id,
         action: "catalog.remove_bom_line",
         entity: "Product",
         entityId: String(productId),

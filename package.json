@@ -15,15 +15,15 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@clerk/nextjs": "^5.7.5",
+    "@clerk/nextjs": "^6.39.5",
     "@prisma/client": "^5.19.1",
     "@radix-ui/react-dialog": "^1.1.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "decimal.js": "^10.4.3",
     "next": "15.3.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "react": "^19.1.4",
+    "react-dom": "^19.1.4",
     "server-only": "^0.0.1",
     "tailwind-merge": "^2.5.2"
   },
