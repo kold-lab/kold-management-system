@@ -13,7 +13,7 @@ import type { FlavourListItem } from "../queries";
 export function CatalogTable({ flavours }: { flavours: FlavourListItem[] }) {
   if (flavours.length === 0) {
     return (
-      <p className="rounded-lg border border-brand-slate/20 bg-white p-6 text-sm text-brand-slate">
+      <p className="rounded-lg border border-brand-slate/20 bg-white p-4 text-sm text-brand-slate">
         No flavours yet. Add one to generate its SKUs.
       </p>
     );

@@ -20,7 +20,7 @@ const TYPE_LABEL: Record<MaterialListItem["type"], string> = {
 export function MaterialsTable({ materials }: { materials: MaterialListItem[] }) {
   if (materials.length === 0) {
     return (
-      <p className="rounded-lg border border-brand-slate/20 bg-white p-6 text-sm text-brand-slate">
+      <p className="rounded-lg border border-brand-slate/20 bg-white p-4 text-sm text-brand-slate">
         No materials yet.
       </p>
     );

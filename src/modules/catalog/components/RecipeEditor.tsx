@@ -72,7 +72,7 @@ export function RecipeEditor({
   return (
     <div className="space-y-4">
       {lines.length === 0 ? (
-        <p className="rounded-lg border border-brand-slate/20 bg-white p-6 text-sm text-brand-slate">
+        <p className="rounded-lg border border-brand-slate/20 bg-white p-4 text-sm text-brand-slate">
           No recipe yet. Add the per-bottle materials below.
         </p>
       ) : (
@@ -134,7 +134,7 @@ export function RecipeEditor({
         <span className="text-sm font-semibold text-brand-deep">
           Unit material cost
         </span>
-        <span className="text-lg font-bold text-brand-deep">
+        <span className="text-lg font-bold text-brand">
           {unitCostLabel ?? "—"}
         </span>
       </div>
@@ -147,9 +147,9 @@ export function RecipeEditor({
 
       <form
         action={setFormAction}
-        className="space-y-3 rounded-lg border border-brand-slate/20 bg-white p-4"
+        className="space-y-3 rounded-lg border border-brand-slate/20 bg-white p-3"
       >
-        <h2 className="text-sm font-bold text-brand-deep">
+        <h2 className="text-sm font-bold text-brand">
           {editing ? `Update ${editing.materialName}` : "Add material"}
         </h2>
         <input type="hidden" name="productId" value={productId} />

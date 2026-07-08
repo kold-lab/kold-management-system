@@ -55,7 +55,7 @@ export function NewBatchForm({
 
   return (
     <form action={formAction} className="space-y-4">
-      <div className="space-y-3 rounded-lg border border-brand-slate/20 bg-white p-4">
+      <div className="space-y-3 rounded-lg border border-brand-slate/20 bg-white p-3">
         <label className="block text-sm font-semibold text-brand-deep">
           SKU
           <select
@@ -122,8 +122,8 @@ export function NewBatchForm({
       </div>
 
       {product && (
-        <div className="space-y-2 rounded-lg border border-brand-slate/20 bg-white p-4">
-          <h2 className="text-sm font-bold text-brand-deep">Will consume</h2>
+        <div className="space-y-2 rounded-lg border border-brand-slate/20 bg-white p-3">
+          <h2 className="text-sm font-bold text-brand">Will consume</h2>
           {bottles === null ? (
             <p className="text-sm text-brand-slate">
               Enter a bottle count to preview material consumption.

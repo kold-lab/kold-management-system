@@ -54,7 +54,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-brand-deep">Dashboard</h1>
+        <h1 className="text-xl font-bold text-brand">Dashboard</h1>
         <p className="text-sm text-brand-slate">
           Stock at a glance and what needs attention.
         </p>
@@ -71,9 +71,9 @@ export default async function DashboardPage() {
       </div>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-bold text-brand-deep">Stock at a glance</h2>
+        <h2 className="text-sm font-bold text-brand">Stock at a glance</h2>
         {summary.length === 0 ? (
-          <p className="rounded-lg border border-brand-slate/20 bg-white p-6 text-sm text-brand-slate">
+          <p className="rounded-lg border border-brand-slate/20 bg-white p-4 text-sm text-brand-slate">
             No finished stock.{" "}
             <Link
               href="/production/new"
@@ -118,7 +118,7 @@ export default async function DashboardPage() {
 
       {expiringLots.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-sm font-bold text-brand-deep">
+          <h2 className="text-sm font-bold text-brand">
             Expiring soon — sell or write off
           </h2>
           <StockTable lots={expiringLots} />
@@ -127,10 +127,10 @@ export default async function DashboardPage() {
 
       {lowStockMaterials.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-sm font-bold text-brand-deep">
+          <h2 className="text-sm font-bold text-brand">
             Materials to reorder
           </h2>
-          <ul className="space-y-1 rounded-lg border border-brand-slate/20 bg-white p-4">
+          <ul className="space-y-1 rounded-lg border border-brand-slate/20 bg-white p-3">
             {lowStockMaterials.map((m) => (
               <li
                 key={m.id}

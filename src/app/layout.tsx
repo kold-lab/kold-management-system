@@ -11,7 +11,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Kold Ops",
+  title: "kold ms",
   description: "Internal operations for Kold ready-to-drink cold brew tea.",
 };
 
@@ -24,11 +24,11 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={`${nunito.variable} font-sans antialiased`}>
-          <header className="flex items-center gap-6 border-b border-brand-slate/20 bg-white px-6 py-3">
+          <header className="flex items-center gap-4 border-b border-brand-slate/20 bg-white px-4 py-2">
             <div>
-              <span className="text-lg font-bold text-brand-deep">k.</span>
+              <span className="text-lg font-bold text-brand">k.</span>
               <span className="ml-2 text-sm font-semibold text-brand-slate">
-                Kold Ops
+                kold ms
               </span>
             </div>
             <nav className="flex gap-4 text-sm font-semibold text-brand-deep">
@@ -44,7 +44,7 @@ export default function RootLayout({
               </SignedIn>
             </div>
           </header>
-          <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">{children}</main>
+          <main className="mx-auto max-w-5xl px-3 py-4 sm:px-5">{children}</main>
         </body>
       </html>
     </ClerkProvider>

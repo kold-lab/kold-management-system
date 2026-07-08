@@ -22,7 +22,7 @@ export default async function RecipePage({
         <Link href="/catalog" className="text-sm font-semibold text-brand-slate">
           ← Catalog
         </Link>
-        <h1 className="text-xl font-bold text-brand-deep">
+        <h1 className="text-xl font-bold text-brand">
           Recipe — {recipe.flavourName} {recipe.sizeMl}ml
         </h1>
         <p className="text-sm text-brand-slate">

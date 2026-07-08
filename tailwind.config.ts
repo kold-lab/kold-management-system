@@ -8,7 +8,7 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          DEFAULT: "#4A90E2",
+          DEFAULT: "#409bd8",
           deep: "#0F2D4D",
           ice: "#E6F2FA",
           mist: "#F2F4F7",

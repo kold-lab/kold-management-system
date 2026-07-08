@@ -8,14 +8,17 @@ file wins.
 
 | Token         | Hex       | Role in UI                                        |
 |---------------|-----------|---------------------------------------------------|
-| `brand.deep`  | `#0F2D4D` | Body text, headings, primary buttons, nav         |
-| `brand`       | `#4A90E2` | Accents ONLY: links, active states, charts, logo  |
+| `brand.deep`  | `#0F2D4D` | Body text, labels, table text, nav                |
+| `brand`       | `#409BD8` | Headings, primary buttons, links, accents, logo   |
 | `brand.ice`   | `#E6F2FA` | Tint panels, info backgrounds, hovers             |
 | `brand.mist`  | `#F2F4F7` | Page background                                   |
 | `brand.slate` | `#6B7B84` | Secondary text, borders, icons                    |
 
-**Rule: Kold Blue `#4A90E2` is never body-text color** — ~3.1:1 on white,
-fails WCAG AA. Deep Blue carries all reading text (13.9:1).
+**Rule: Kold Blue `#409BD8` is never body-text color** — ~3.0:1 on white,
+fails WCAG AA. Deep Blue carries all reading text (13.9:1). Headings and
+primary buttons moved to Kold Blue by owner decision (2026-07-08) — they
+are large/bold enough for the 3:1 large-text threshold; body copy stays
+Deep Blue.
 
 ## Semantic extension (not in the brand guide — required for status UI)
 
@@ -44,7 +47,7 @@ fails WCAG AA. Deep Blue carries all reading text (13.9:1).
 
 ```ts
 colors: {
-  brand: { DEFAULT: "#4A90E2", deep: "#0F2D4D", ice: "#E6F2FA",
+  brand: { DEFAULT: "#409BD8", deep: "#0F2D4D", ice: "#E6F2FA",
            mist: "#F2F4F7", slate: "#6B7B84" },
   success: { DEFAULT: "#2E8B6E", soft: "#E4F3EE" },
   warning: { DEFAULT: "#B87A1E", soft: "#FBF1DE" },

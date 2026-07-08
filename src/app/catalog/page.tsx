@@ -9,7 +9,7 @@ export default async function CatalogPage() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-brand-deep">Catalog</h1>
+          <h1 className="text-xl font-bold text-brand">Catalog</h1>
           <p className="text-sm text-brand-slate">
             Flavours and their SKUs — one per bottle size.
           </p>
