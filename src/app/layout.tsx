@@ -25,20 +25,20 @@ export default function RootLayout({
       <html lang="en">
         <body className={`${nunito.variable} font-sans antialiased`}>
           <header className="flex items-center gap-4 border-b border-brand-slate/20 bg-white px-4 py-2">
-            <div>
+            <div className="shrink-0">
               <span className="text-lg font-bold text-brand">k.</span>
-              <span className="ml-2 text-sm font-semibold text-brand-slate">
+              <span className="ml-2 hidden text-sm font-semibold text-brand-slate sm:inline">
                 kold ms
               </span>
             </div>
-            <nav className="flex gap-4 text-sm font-semibold text-brand-deep">
+            <nav className="flex min-w-0 flex-1 gap-4 overflow-x-auto whitespace-nowrap py-1 text-sm font-semibold text-brand-deep">
               <Link href="/">Dashboard</Link>
               <Link href="/materials">Materials</Link>
               <Link href="/catalog">Catalog</Link>
               <Link href="/production">Production</Link>
               <Link href="/stock">Stock</Link>
             </nav>
-            <div className="ml-auto">
+            <div className="shrink-0">
               <SignedIn>
                 <UserButton />
               </SignedIn>

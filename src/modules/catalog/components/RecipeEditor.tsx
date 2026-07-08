@@ -130,7 +130,7 @@ export function RecipeEditor({
         </Table>
       )}
 
-      <div className="flex items-baseline justify-between rounded-lg border border-brand-slate/20 bg-white px-4 py-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg border border-brand-slate/20 bg-white px-4 py-3">
         <span className="text-sm font-semibold text-brand-deep">
           Unit material cost
         </span>

@@ -4,12 +4,14 @@ export {
   createMaterialAction,
   deactivateMaterialAction,
   receiveMaterialStockAction,
+  updateMaterialDetailsAction,
   updateMaterialPriceAction,
 } from "./actions";
 export type {
   CreateMaterialState,
   DeactivateMaterialState,
   ReceiveStockState,
+  UpdateMaterialDetailsState,
   UpdatePriceState,
 } from "./actions";
 export { MaterialsTable } from "./components/MaterialsTable";

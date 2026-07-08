@@ -19,7 +19,7 @@ export default async function RecipePage({
   return (
     <div className="space-y-4">
       <div>
-        <Link href="/catalog" className="text-sm font-semibold text-brand-slate">
+        <Link href="/catalog" className="inline-flex h-9 items-center gap-1.5 rounded border border-brand-slate/30 bg-white px-3 text-sm font-semibold text-brand-deep hover:bg-brand-ice">
           ← Catalog
         </Link>
         <h1 className="text-xl font-bold text-brand">

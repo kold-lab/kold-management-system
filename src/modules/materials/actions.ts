@@ -157,6 +157,82 @@ export async function createMaterialAction(
   return {};
 }
 
+export type UpdateMaterialDetailsState = { error?: string };
+
+/**
+ * Edits master-data details: name, type, low-stock threshold (D16 — master
+ * data is fully editable). Unit is locked: stock, prices, and recipes are
+ * all denominated in it, so changing it would silently corrupt history.
+ */
+export async function updateMaterialDetailsAction(
+  _prevState: UpdateMaterialDetailsState,
+  formData: FormData
+): Promise<UpdateMaterialDetailsState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
+  const materialId = Number(formData.get("materialId"));
+  if (!Number.isInteger(materialId) || materialId <= 0) {
+    return { error: "Unknown material." };
+  }
+
+  const material = await prisma.material.findUnique({ where: { id: materialId } });
+  if (!material || !material.isActive) {
+    return { error: "Unknown material." };
+  }
+
+  let input, threshold;
+  try {
+    input = parseNewMaterialInput(
+      String(formData.get("name") ?? ""),
+      String(formData.get("type") ?? ""),
+      material.unit // unit is not editable; validate against the existing one
+    );
+    threshold = parseThresholdInput(String(formData.get("lowStockThreshold") ?? ""));
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Invalid input." };
+  }
+
+  if (input.name !== material.name) {
+    const clash = await prisma.material.findUnique({ where: { name: input.name } });
+    if (clash) return { error: "A material with this name already exists." };
+  }
+
+  await prisma.$transaction([
+    prisma.material.update({
+      where: { id: materialId },
+      data: { name: input.name, type: input.type, lowStockThreshold: threshold },
+    }),
+    prisma.auditLog.create({
+      data: {
+        userId: actor.id,
+        action: "material.update_details",
+        entity: "Material",
+        entityId: String(materialId),
+        detail: {
+          before: {
+            name: material.name,
+            type: material.type,
+            lowStockThreshold: material.lowStockThreshold.toString(),
+          },
+          after: {
+            name: input.name,
+            type: input.type,
+            lowStockThreshold: threshold.toString(),
+          },
+        },
+      },
+    }),
+  ]);
+
+  revalidatePath("/materials");
+  return {};
+}
+
 /**
  * Soft-deletes a material (isActive = false — rule 5, master data referenced
  * by history is never hard-deleted). Blocked while any active product's

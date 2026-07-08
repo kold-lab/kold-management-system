@@ -140,7 +140,7 @@ export function NewBatchForm({
                 return (
                   <li
                     key={l.materialId}
-                    className="flex items-baseline justify-between gap-2 text-sm"
+                    className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-sm"
                   >
                     <span className="text-brand-deep">{l.materialName}</span>
                     <span className={short ? "font-semibold text-danger" : "text-brand-slate"}>
@@ -152,7 +152,7 @@ export function NewBatchForm({
               })}
             </ul>
           )}
-          <div className="flex items-baseline justify-between border-t border-brand-slate/20 pt-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-brand-slate/20 pt-2">
             <span className="text-sm font-semibold text-brand-deep">
               Unit cost (today&apos;s prices)
             </span>

@@ -27,8 +27,8 @@ function StatCard({
   tone?: "ok" | "warn";
 }) {
   return (
-    <div className="rounded-lg border border-brand-slate/20 bg-white px-4 py-3">
-      <p className="text-xs font-semibold text-brand-slate">{label}</p>
+    <div className="rounded-lg border border-brand-slate/20 bg-white px-3 py-2.5 sm:px-4 sm:py-3">
+      <p className="text-[11px] font-semibold leading-tight text-brand-slate sm:text-xs">{label}</p>
       <p
         className={`text-2xl font-bold ${
           tone === "warn" && value > 0 ? "text-warning" : "text-brand-deep"
@@ -60,7 +60,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <StatCard label="Bottles on hand" value={totalBottles} />
         <StatCard label="Expiring ≤2 days" value={urgentBottles} tone="warn" />
         <StatCard
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
             {lowStockMaterials.map((m) => (
               <li
                 key={m.id}
-                className="flex items-baseline justify-between text-sm"
+                className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-sm"
               >
                 <Link
                   href="/materials"

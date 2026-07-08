@@ -10,10 +10,7 @@ export default async function NewBatchPage() {
   return (
     <div className="mx-auto max-w-lg space-y-4">
       <div>
-        <Link
-          href="/production"
-          className="text-sm font-semibold text-brand-slate"
-        >
+        <Link href="/production" className="inline-flex h-9 items-center gap-1.5 rounded border border-brand-slate/30 bg-white px-3 text-sm font-semibold text-brand-deep hover:bg-brand-ice">
           ← Production
         </Link>
         <h1 className="text-xl font-bold text-brand">New brew batch</h1>

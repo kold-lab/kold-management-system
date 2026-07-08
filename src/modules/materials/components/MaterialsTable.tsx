@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import type { MaterialListItem } from "../queries";
 import { UpdatePriceDialog } from "./UpdatePriceDialog";
 import { ReceiveStockDialog } from "./ReceiveStockDialog";
+import { EditMaterialDialog } from "./EditMaterialDialog";
 import { DeactivateMaterialDialog } from "./DeactivateMaterialDialog";
 
 const TYPE_LABEL: Record<MaterialListItem["type"], string> = {
@@ -74,6 +75,13 @@ export function MaterialsTable({ materials }: { materials: MaterialListItem[] })
                     materialName={m.name}
                     currentCostLabel={costLabel}
                     unit={m.unit}
+                  />
+                  <EditMaterialDialog
+                    materialId={m.id}
+                    materialName={m.name}
+                    materialType={m.type}
+                    unit={m.unit}
+                    lowStockThreshold={m.lowStockThreshold.toString()}
                   />
                   <DeactivateMaterialDialog
                     materialId={m.id}
