@@ -30,11 +30,24 @@ Partners (CRM basics), placements, weekly count screen (phone-first),
 par-level restock suggestions, reconciliation sign-off, waste split
 (expired vs damaged), consignment stock per partner site.
 
+Delivery note generation (added 2026-07-08): a placement renders as a
+print-styled page (browser print → PDF, no PDF library) with DN number,
+partner block, per-flavour quantities, delivery + return acknowledgement
+signature blocks, and a manual return section for the collection visit.
+Layout/content reference: the standalone tools in `document_generation/`,
+which this replaces — partner details, quantities, and numbering come
+from system data instead of being retyped. Business identity (legal name
+"kold brew hub", reg no., bank ref) lives in one shared config used by
+all generated documents.
+
 ## Phase 3 — money
 
 Monthly consignment invoicing (job-generated), outright B2B invoices,
 payments + partial payments, AR aging, credit notes, payment reminders.
 Decide payment gateway. Verify LHDN MyInvois scope before schema work.
+Document rendering follows the Phase 2 delivery-note approach; layout
+reference for consignment + outright invoices: `document_generation/`
+(SST % line, payment box with bank ref, unpaid/paid status).
 
 ## Phase 4 — edges
 

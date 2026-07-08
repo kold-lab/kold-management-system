@@ -42,6 +42,11 @@ Deep Blue.
   Ice Blue generously.
 - **Internal ops tool:** quiet brand — Nunito + palette + small `k.`
   mark; no tagline, no pattern. Operators stare at it for hours.
+- **Official documents (delivery notes, invoices — D18):** issued as
+  "kold brew hub" (registered name, JR0189682-H); Nunito; brand blue
+  `#409BD8` for accents, dark body text for print legibility. One shared
+  business-identity config (legal name, reg no., bank ref) feeds every
+  generated document.
 
 ## Tailwind mapping
 

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>kold brew hub — delivery note</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --blue:#4AABDB;--blue-dark:#3695c5;--blue-light:#E6F1FB;
+  --bg:#ffffff;--bg2:#f7f8f9;--bg3:#f0f1f3;
+  --text:#1a1a1a;--text2:#555;--text3:#999;
+  --border:rgba(0,0,0,0.10);--border2:rgba(0,0,0,0.22);
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:'Comfortaa','Segoe UI',sans-serif;background:var(--bg2);color:var(--text);min-height:100vh;}
+.app{max-width:720px;margin:0 auto;padding:2rem 1rem 4rem;}
+.app-header{display:flex;align-items:center;gap:14px;margin-bottom:2rem;}
+.logo-circle{width:48px;height:48px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-circle span{color:#fff;font-size:13px;font-family:'Comfortaa',sans-serif;}
+.app-title{font-size:22px;font-weight:700;}
+.app-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 10px;border-radius:var(--radius);}
+.badge-blue{background:var(--blue-light);color:#185FA5;}
+.badge-teal{background:#E1F5EE;color:#0F6E56;}
+.badge-pink{background:#FBEAF0;color:#993556;}
+.badge-amber{background:#FAEEDA;color:#854F0B;}
+.badge-berry{background:#F3EBFA;color:#6B28A0;}
+.badge-blossom{background:#FDE8F0;color:#A0285A;}
+.badge-rose{background:#FBECEC;color:#A03028;}
+.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:10px;}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:12px;color:var(--text2);}
+.field input,.field select,.field textarea{font-family:'Comfortaa',sans-serif;font-size:13px;color:var(--text);background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 10px;outline:none;transition:border-color 0.15s;width:100%;}
+.field input:focus,.field textarea:focus{border-color:var(--blue);}
+.field textarea{resize:vertical;min-height:64px;}
+.flavour-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;align-items:center;margin-bottom:8px;}
+.flavour-grid.header span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);}
+.flavour-grid.header span:not(:first-child){text-align:right;}
+.flavour-grid input{font-family:'Comfortaa',sans-serif;font-size:13px;color:var(--text);background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 8px;outline:none;width:100%;text-align:right;}
+.flavour-grid input:focus{border-color:var(--blue);}
+.qty-total{text-align:right;font-size:14px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
+.divider{border:none;border-top:0.5px solid var(--border);margin:1rem 0 0.5rem;}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;color:var(--text2);}
+.total-row.grand{font-size:15px;font-weight:700;color:var(--text);padding-top:10px;border-top:0.5px solid var(--border);margin-top:4px;}
+.total-row .val{font-weight:500;color:var(--text);font-variant-numeric:tabular-nums;}
+.total-row.grand .val{color:var(--blue);}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:1rem;}
+.btn{font-family:'Comfortaa',sans-serif;font-size:14px;font-weight:700;padding:10px 20px;border-radius:var(--radius);cursor:pointer;border:none;transition:background 0.15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover{background:var(--blue-dark);}
+.btn-secondary{background:transparent;border:0.5px solid var(--border2);color:var(--text);}
+.btn-secondary:hover{background:var(--bg3);}
+.step{display:block;}
+.step.hidden{display:none;}
+
+/* ── Preview ── */
+.preview-wrap{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:2rem;}
+.dn-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;}
+.dn-brand-name{font-size:20px;font-weight:700;color:var(--blue);}
+.dn-doc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-top:4px;}
+.dn-meta{text-align:right;font-size:12px;color:var(--text2);line-height:1.9;}
+.dn-meta strong{font-size:15px;color:var(--text);font-weight:700;display:block;}
+.parties{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;background:var(--bg2);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.5rem;}
+.party-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);font-weight:700;margin-bottom:6px;}
+.party-name{font-size:14px;font-weight:700;color:var(--text);}
+.party-detail{font-size:12px;color:var(--text2);margin-top:2px;white-space:pre-line;}
+.dn-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:0;}
+.dn-table th{text-align:left;padding:8px 0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);border-bottom:0.5px solid var(--border);}
+.dn-table th:not(:first-child){text-align:right;}
+.dn-table td{padding:10px 0;border-bottom:0.5px solid var(--border);color:var(--text);}
+.dn-table td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums;}
+.dn-table tr:last-child td{border-bottom:none;}
+.manual-table{width:100%;border-collapse:collapse;font-size:13px;}
+.manual-table th{text-align:left;padding:8px 0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);border-bottom:0.5px solid var(--border);}
+.manual-table th:not(:first-child){text-align:right;}
+.manual-table td{padding:0;border-bottom:0.5px solid var(--border);}
+.manual-table tr:last-child td{border-bottom:none;}
+.page-break-divider{position:relative;margin:2.5rem 0;border:none;border-top:1px dashed rgba(0,0,0,0.15);}
+.page-break-divider::after{content:'— return section —';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg);padding:0 12px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(0,0,0,0.25);white-space:nowrap;}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:1.25rem;}
+.sig-box{display:flex;flex-direction:column;gap:8px;}
+.sig-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);font-weight:700;}
+.sig-line{border-bottom:0.5px solid var(--text);height:40px;}
+.sig-name{font-size:12px;color:var(--text2);margin-top:4px;}
+.sig-date-line{font-size:11px;color:var(--text3);}
+.dn-footer{margin-top:1.5rem;padding-top:1rem;border-top:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:11px;}
+.notes-box{margin-top:1rem;padding-top:1rem;border-top:0.5px solid var(--border);font-size:12px;color:var(--text3);}
+
+/* ── Print ── */
+@media print {
+  body{background:#fff;}
+  .app{padding:0;max-width:100%;}
+  #preview-controls{display:none!important;}
+  #preview-controls-btns{display:none!important;}
+  .preview-wrap{border:none;border-radius:0;padding:0;}
+  .parties{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .logo-circle{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .dn-brand-name{color:#4AABDB!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .party-label{color:#4AABDB!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .sig-label{color:#4AABDB!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .total-row.grand .val{color:#4AABDB!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .page-break-divider{border-top:1px dashed rgba(0,0,0,0.15);-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+@media (max-width:540px){
+  .grid2,.grid3{grid-template-columns:1fr;}
+  .flavour-grid{grid-template-columns:1fr 1fr;}
+  .flavour-grid .badge{font-size:10px;}
+  .parties,.sig-grid{grid-template-columns:1fr;}
+  .dn-header{flex-direction:column;gap:1rem;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── FORM ── -->
+  <div id="form-step" class="step">
+    <div class="app-header">
+      <div class="logo-circle"><span>kold.</span></div>
+      <div>
+        <div class="app-title">delivery note</div>
+        <div class="app-sub">kold brew hub &middot; consignment</div>
+      </div>
+      <span class="badge badge-blue" style="margin-left:auto">delivery note</span>
+    </div>
+
+    <p class="section-label">document details</p>
+    <div class="card">
+      <div class="grid3" style="margin-bottom:12px">
+        <div class="field"><label>DN no.</label><input type="text" id="dn-no" placeholder="DN-001" value="DN-001"></div>
+        <div class="field"><label>Delivery date</label><input type="date" id="dn-date"></div>
+        <div class="field"><label>Related invoice no.</label><input type="text" id="ref-inv" placeholder="INV-001 (optional)"></div>
+      </div>
+      <div class="field"><label>Consignment period</label><input type="text" id="cons-period" placeholder="e.g. May 2025"></div>
+    </div>
+
+    <p class="section-label">business partner</p>
+    <div class="card">
+      <div class="field" style="margin-bottom:12px"><label>Partner / outlet name</label><input type="text" id="partner-name" placeholder="e.g. Kopi Tiam Bangsar"></div>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="field"><label>Contact person</label><input type="text" id="contact-name" placeholder="Name"></div>
+        <div class="field"><label>Email</label><input type="email" id="contact-email" placeholder="email@outlet.com"></div>
+      </div>
+      <div class="field"><label>Address</label><textarea id="partner-addr" placeholder="Street, City, Postcode"></textarea></div>
+    </div>
+
+    <p class="section-label">bottles delivered</p>
+    <div class="card">
+      <div class="flavour-grid header" style="margin-bottom:6px">
+        <span>Flavour</span><span>Qty delivered</span><span>Total</span>
+      </div>
+      <div class="flavour-grid" style="margin-bottom:10px">
+        <span class="badge badge-teal">osmanthus oolong</span>
+        <input type="number" id="del-1" placeholder="0" min="0" oninput="calcTotals()">
+        <div class="qty-total" id="del-tot-1">—</div>
+      </div>
+      <div class="flavour-grid" style="margin-bottom:10px">
+        <span class="badge badge-pink">jasmine green</span>
+        <input type="number" id="del-2" placeholder="0" min="0" oninput="calcTotals()">
+        <div class="qty-total" id="del-tot-2">—</div>
+      </div>
+      <div class="flavour-grid" style="margin-bottom:10px">
+        <span class="badge badge-amber">white peach oolong</span>
+        <input type="number" id="del-3" placeholder="0" min="0" oninput="calcTotals()">
+        <div class="qty-total" id="del-tot-3">—</div>
+      </div>
+      <div class="flavour-grid" style="margin-bottom:10px">
+        <span class="badge badge-berry">berry peony oolong</span>
+        <input type="number" id="del-4" placeholder="0" min="0" oninput="calcTotals()">
+        <div class="qty-total" id="del-tot-4">—</div>
+      </div>
+      <div class="flavour-grid" style="margin-bottom:10px">
+        <span class="badge badge-blossom">blossom</span>
+        <input type="number" id="del-5" placeholder="0" min="0" oninput="calcTotals()">
+        <div class="qty-total" id="del-tot-5">—</div>
+      </div>
+      <div class="flavour-grid" style="margin-bottom:10px">
+        <span class="badge badge-rose">rose oolong</span>
+        <input type="number" id="del-6" placeholder="0" min="0" oninput="calcTotals()">
+        <div class="qty-total" id="del-tot-6">—</div>
+      </div>
+      <hr class="divider">
+      <div class="total-row grand"><span>total delivered</span><span class="val" id="tot-delivered">0 btl</span></div>
+    </div>
+
+    <p class="section-label">notes (optional)</p>
+    <div class="card">
+      <div class="field"><label>Remarks</label><textarea id="dn-notes" placeholder="e.g. Handle with care. Keep refrigerated."></textarea></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="showPreview()">&#9654; preview delivery note</button>
+      <button class="btn btn-secondary" onclick="resetForm()">&#8635; reset</button>
+    </div>
+  </div>
+
+  <!-- ── PREVIEW ── -->
+  <div id="preview-step" class="step hidden">
+    <div id="preview-controls" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <span style="font-size:18px;font-weight:700">delivery note preview</span>
+      <button class="btn btn-secondary" onclick="backToForm()" style="font-size:13px;padding:6px 14px">&#8592; edit</button>
+    </div>
+
+    <div class="preview-wrap">
+
+      <!-- Header -->
+      <div class="dn-header">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="logo-circle"><span>kold.</span></div>
+          <div>
+            <div class="dn-brand-name">kold brew hub</div>
+            <div class="dn-doc-label">delivery note</div>
+          </div>
+        </div>
+        <div class="dn-meta">
+          <strong id="prev-dn-no">DN-001</strong>
+          <span id="prev-dn-date"></span>
+          <span id="prev-ref-inv" style="display:none;font-size:11px;color:var(--text3)"></span>
+        </div>
+      </div>
+
+      <!-- Parties -->
+      <div class="parties">
+        <div>
+          <div class="party-label">from</div>
+          <div class="party-name">kold brew hub</div>
+        </div>
+        <div>
+          <div class="party-label">delivered to</div>
+          <div class="party-name" id="prev-to-name">—</div>
+          <div class="party-detail" id="prev-to-detail"></div>
+          <div class="party-detail" id="prev-to-addr"></div>
+        </div>
+      </div>
+
+      <!-- Period -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.5rem;font-size:13px">
+        <span style="font-size:12px;color:var(--text2)">consignment period:</span>
+        <span style="font-weight:700" id="prev-period">—</span>
+      </div>
+
+      <!-- Delivered table — only filled flavours appear -->
+      <p class="section-label" style="margin-bottom:8px">bottles delivered</p>
+      <table class="dn-table" style="margin-bottom:1.5rem">
+        <thead><tr><th>Flavour</th><th>Qty delivered</th></tr></thead>
+        <tbody id="prev-del-lines"></tbody>
+        <tfoot>
+          <tr>
+            <td style="font-weight:700;padding-top:12px;border-top:0.5px solid var(--border);border-bottom:none">total delivered</td>
+            <td style="font-weight:700;text-align:right;padding-top:12px;border-top:0.5px solid var(--border);border-bottom:none;color:var(--blue)" id="prev-tot-delivered">0 btl</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- Notes -->
+      <div class="notes-box" id="prev-notes-box" style="display:none"><span id="prev-notes"></span></div>
+
+      <!-- Acknowledgement 1 — Delivery -->
+      <p class="section-label" style="margin-top:1.5rem;margin-bottom:0">acknowledgement of delivery</p>
+      <div class="sig-grid">
+        <div class="sig-box">
+          <div class="sig-label">delivered by (kold brew hub)</div>
+          <div class="sig-line"></div>
+          <div class="sig-name">name: ___________________________</div>
+          <div class="sig-date-line">date: ___________________________</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-label">received by (partner)</div>
+          <div class="sig-line"></div>
+          <div class="sig-name" id="prev-sig-partner">name: ___________________________</div>
+          <div class="sig-date-line">date: ___________________________</div>
+        </div>
+      </div>
+
+      <!-- Faint divider -->
+      <hr class="page-break-divider">
+
+      <!-- Return section — same flavours as delivered, manual fill-in -->
+      <p class="section-label" style="margin-bottom:8px">bottles returned (same batch)</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:1rem;">To be completed upon collection of unsold stock. Fill in manually.</p>
+
+      <table class="manual-table" style="margin-bottom:1.5rem">
+        <thead>
+          <tr>
+            <th>Flavour</th>
+            <th style="text-align:right;width:160px">Qty returned</th>
+          </tr>
+        </thead>
+        <tbody id="prev-ret-lines"></tbody>
+        <tfoot>
+          <tr>
+            <td style="font-weight:700;padding-top:12px;border-top:0.5px solid var(--border);font-size:13px">total returned</td>
+            <td style="padding-top:12px;border-top:0.5px solid var(--border)">
+              <div style="height:28px;border-bottom:0.5px solid var(--text2);width:80px;margin-left:auto"></div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- Remarks lines -->
+      <div style="margin-bottom:1.5rem">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">remarks</div>
+        <div style="border-bottom:0.5px solid var(--border2);height:28px;margin-bottom:8px"></div>
+        <div style="border-bottom:0.5px solid var(--border2);height:28px"></div>
+      </div>
+
+      <!-- Acknowledgement 2 — Return -->
+      <p class="section-label" style="margin-bottom:0">acknowledgement of return</p>
+      <div class="sig-grid">
+        <div class="sig-box">
+          <div class="sig-label">collected by (kold brew hub)</div>
+          <div class="sig-line"></div>
+          <div class="sig-name">name: ___________________________</div>
+          <div class="sig-date-line">date: ___________________________</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-label">returned by (partner)</div>
+          <div class="sig-line"></div>
+          <div class="sig-name" id="prev-sig-partner-ret">name: ___________________________</div>
+          <div class="sig-date-line">date: ___________________________</div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="dn-footer">
+        <div>
+          <div style="font-weight:700;color:#4AABDB">kold brew hub</div>
+          <div style="color:#999;margin-top:2px">(JR0189682-H)</div>
+        </div>
+        <span style="color:#999" id="prev-footer-dn"></span>
+      </div>
+
+    </div><!-- /preview-wrap -->
+
+    <div class="actions" id="preview-controls-btns" style="margin-top:1rem">
+      <button class="btn btn-primary" onclick="exportPDF()">&#8595; export as pdf</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const FLAVOURS=[
+  'osmanthus oolong',
+  'jasmine green',
+  'white peach oolong',
+  'berry peony oolong',
+  'blossom',
+  'rose oolong'
+];
+
+function calcTotals(){
+  let totDel=0;
+  for(let i=1;i<=6;i++){
+    const d=parseInt(document.getElementById('del-'+i).value)||0;
+    document.getElementById('del-tot-'+i).textContent=d>0?d+' btl':'—';
+    totDel+=d;
+  }
+  document.getElementById('tot-delivered').textContent=totDel+' btl';
+}
+
+function getData(){
+  const del=[];
+  let totDel=0;
+  for(let i=1;i<=6;i++){
+    const d=parseInt(document.getElementById('del-'+i).value)||0;
+    if(d>0) del.push({flavour:FLAVOURS[i-1],qty:d});
+    totDel+=d;
+  }
+  return{
+    dnNo:document.getElementById('dn-no').value||'DN-001',
+    dnDate:document.getElementById('dn-date').value,
+    refInv:document.getElementById('ref-inv').value,
+    period:document.getElementById('cons-period').value,
+    partnerName:document.getElementById('partner-name').value||'—',
+    contactName:document.getElementById('contact-name').value,
+    contactEmail:document.getElementById('contact-email').value,
+    partnerAddr:document.getElementById('partner-addr').value,
+    notes:document.getElementById('dn-notes').value,
+    del, totDel
+  };
+}
+
+function fmtDate(d){
+  if(!d)return'';
+  const p=d.split('-');
+  return parseInt(p[2])+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(p[1])-1]+' '+p[0];
+}
+
+function showPreview(){
+  const d=getData();
+
+  document.getElementById('prev-dn-no').textContent=d.dnNo;
+  document.getElementById('prev-dn-date').textContent=d.dnDate?'date: '+fmtDate(d.dnDate):'';
+  const refEl=document.getElementById('prev-ref-inv');
+  if(d.refInv){refEl.textContent='ref: '+d.refInv;refEl.style.display='block';}else{refEl.style.display='none';}
+  document.getElementById('prev-to-name').textContent=d.partnerName;
+  document.getElementById('prev-to-detail').textContent=[d.contactName,d.contactEmail].filter(Boolean).join(' · ');
+  document.getElementById('prev-to-addr').textContent=d.partnerAddr;
+  document.getElementById('prev-period').textContent=d.period||'—';
+
+  // Delivered table — only flavours with qty > 0
+  const tbody=document.getElementById('prev-del-lines');
+  tbody.innerHTML='';
+  if(!d.del.length){
+    tbody.innerHTML='<tr><td colspan="2" style="color:#999;font-style:italic;padding:10px 0">no bottles entered</td></tr>';
+  } else {
+    d.del.forEach(l=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+l.flavour+'</td><td style="text-align:right;font-weight:700">'+l.qty+' btl</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  document.getElementById('prev-tot-delivered').textContent=d.totDel+' btl';
+
+  // Return table — same flavours as delivered, with blank write-in lines
+  const retBody=document.getElementById('prev-ret-lines');
+  retBody.innerHTML='';
+  if(!d.del.length){
+    retBody.innerHTML='<tr><td colspan="2" style="color:#999;font-style:italic;padding:10px 0">no flavours to return</td></tr>';
+  } else {
+    d.del.forEach((l,idx)=>{
+      const isLast=idx===d.del.length-1;
+      const borderStyle=isLast?'none':'0.5px solid var(--border)';
+      const tr=document.createElement('tr');
+      tr.innerHTML=
+        '<td style="border-bottom:'+borderStyle+'">'
+          +'<div style="padding:10px 0;font-size:13px;color:var(--text)">'+l.flavour+'</div>'
+        +'</td>'
+        +'<td style="border-bottom:'+borderStyle+'">'
+          +'<div style="height:38px;border-bottom:0.5px solid var(--text2);margin:4px 0 0;width:80px;margin-left:auto"></div>'
+        +'</td>';
+      retBody.appendChild(tr);
+    });
+  }
+
+  const partnerLabel=d.partnerName&&d.partnerName!=='—'?d.partnerName:'___________________________';
+  document.getElementById('prev-sig-partner').textContent='name: '+partnerLabel;
+  document.getElementById('prev-sig-partner-ret').textContent='name: '+partnerLabel;
+
+  if(d.notes){document.getElementById('prev-notes').textContent=d.notes;document.getElementById('prev-notes-box').style.display='block';}
+  else{document.getElementById('prev-notes-box').style.display='none';}
+
+  document.getElementById('prev-footer-dn').textContent=d.dnNo+(d.dnDate?' · '+fmtDate(d.dnDate):'');
+  document.getElementById('form-step').classList.add('hidden');
+  document.getElementById('preview-step').classList.remove('hidden');
+}
+
+function backToForm(){
+  document.getElementById('form-step').classList.remove('hidden');
+  document.getElementById('preview-step').classList.add('hidden');
+}
+
+function resetForm(){
+  ['ref-inv','cons-period','partner-name','contact-name','contact-email','partner-addr','dn-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('dn-no').value='DN-001';
+  for(let i=1;i<=6;i++){
+    document.getElementById('del-'+i).value='';
+    document.getElementById('del-tot-'+i).textContent='—';
+  }
+  document.getElementById('tot-delivered').textContent='0 btl';
+}
+
+function exportPDF(){
+  const d=getData();
+  document.title=d.dnNo+'_kold_delivery_note';
+  window.print();
+  document.title='kold brew hub — delivery note';
+}
+
+const t=new Date();
+const pad=n=>String(n).padStart(2,'0');
+document.getElementById('dn-date').value=t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());
+</script>
+</body>
+</html>

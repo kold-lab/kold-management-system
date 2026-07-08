@@ -22,7 +22,9 @@ Never contradict these in code without updating this file first.
 - **D6 — Pricing.** RM7 per bottle, both outright and consignment, both
   sizes, for now. Pricing is per-SKU per-customer-type in the model, so
   this can change without schema work. Known trade-off: 350ml earns ~RM0.50
-  less margin per bottle than 250ml at the same RM7.
+  less margin per bottle than 250ml at the same RM7. Refined 2026-07-08:
+  per-partner price overrides (partner × SKU price list, master data) are
+  planned for Phase 2–3; RM7 stays the default where no override exists.
 - **D7 — Payment terms.** B2B outright: pay on delivery. Consignment
   invoices: Net 14 from issue (stored per customer in
   `paymentTermsDays`, changeable anytime).
@@ -41,6 +43,20 @@ Never contradict these in code without updating this file first.
   alert when crossed.
 - **D13 — Brew yield.** Batches record planned vs actual bottles; unit
   cost is computed from actual yield.
+- **D17 — Partner-driven assortment (2026-07-08).** Consignment is per
+  SKU: partners choose flavour AND size per placement. Some flavours are
+  offered in one size only, some in both — the catalog must support
+  deactivating a single size of a flavour without hiding the other.
+  Placement and weekly-count screens operate per SKU, never per flavour.
+- **D18 — Official documents (2026-07-08).** Delivery notes and invoices
+  are issued under the registered company name "kold brew hub"
+  (JR0189682-H); "kold" / "kold ms" is brand/app naming only. Documents
+  render in Nunito with brand blue #409BD8 — this supersedes the
+  Comfortaa/#4AABDB styling of the legacy standalone tools in
+  `document_generation/`, which serve as layout/content reference until
+  replaced (Phase 2–3). Business identity (legal name, reg no., bank
+  ref) lives in one shared config used by every generated document; the
+  owner OK'd these details being visible in the repo.
 
 ## Costing facts (seed data)
 
