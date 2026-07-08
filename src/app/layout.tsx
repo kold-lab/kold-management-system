@@ -24,7 +24,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={`${nunito.variable} font-sans antialiased`}>
-          <header className="flex items-center gap-4 border-b border-brand-slate/20 bg-white px-4 py-2">
+          <header className="flex items-center gap-4 border-b border-brand-slate/20 bg-white px-4 py-2 print:hidden">
             <div className="shrink-0">
               <span className="text-lg font-bold text-brand">k.</span>
               <span className="ml-2 hidden text-sm font-semibold text-brand-slate sm:inline">
@@ -38,6 +38,7 @@ export default function RootLayout({
               <Link href="/production">Production</Link>
               <Link href="/stock">Stock</Link>
               <Link href="/partners">Partners</Link>
+              <Link href="/placements">Placements</Link>
             </nav>
             <div className="shrink-0">
               <SignedIn>

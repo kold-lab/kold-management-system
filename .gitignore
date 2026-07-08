@@ -2,7 +2,7 @@ node_modules/
 .next/
 .env
 .env.local
-.env.production
+.env.deploy
 *.log
 .claude/settings.local.json
 tsconfig.tsbuildinfo

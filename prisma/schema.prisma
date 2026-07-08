@@ -20,14 +20,14 @@ enum Role {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  clerkUserId String   @unique
+  id          String     @id @default(cuid())
+  clerkUserId String     @unique
   name        String
-  role        Role     @default(OPS)
+  role        Role       @default(OPS)
   customerId  Int? // set for PARTNER portal users
-  customer    Customer? @relation(fields: [customerId], references: [id])
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  customer    Customer?  @relation(fields: [customerId], references: [id])
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
   auditLogs   AuditLog[]
 }
 
@@ -54,21 +54,21 @@ model Flavour {
 }
 
 model Product {
-  id         Int      @id @default(autoincrement())
-  flavourId  Int
-  flavour    Flavour  @relation(fields: [flavourId], references: [id])
-  sizeMl     Int // 250 | 350
-  skuCode    String   @unique
-  isActive   Boolean  @default(true)
-  bomLines   BomLine[]
-  brewBatches BrewBatch[]
-  orderLines OrderLine[]
-  parLevels  ParLevel[]
-  placements ConsignmentPlacement[]
-  reconLines ReconciliationLine[]
+  id           Int                    @id @default(autoincrement())
+  flavourId    Int
+  flavour      Flavour                @relation(fields: [flavourId], references: [id])
+  sizeMl       Int // 250 | 350
+  skuCode      String                 @unique
+  isActive     Boolean                @default(true)
+  bomLines     BomLine[]
+  brewBatches  BrewBatch[]
+  orderLines   OrderLine[]
+  parLevels    ParLevel[]
+  placements   ConsignmentPlacement[]
+  reconLines   ReconciliationLine[]
   invoiceLines InvoiceLine[]
-  returns    Return[]
-  samples    Sample[]
+  returns      Return[]
+  samples      Sample[]
 
   @@unique([flavourId, sizeMl])
 }
@@ -118,16 +118,16 @@ enum BatchStatus {
 }
 
 model BrewBatch {
-  id               Int         @id @default(autoincrement())
+  id               Int                    @id @default(autoincrement())
   productId        Int
-  product          Product     @relation(fields: [productId], references: [id])
-  brewDate         DateTime    @db.Date
-  expiryDate       DateTime    @db.Date // ALWAYS brewDate + 7d, computed in logic.ts
+  product          Product                @relation(fields: [productId], references: [id])
+  brewDate         DateTime               @db.Date
+  expiryDate       DateTime               @db.Date // ALWAYS brewDate + 7d, computed in logic.ts
   qtyPlanned       Int
   qtyProduced      Int
-  unitCostSnapshot Decimal     @db.Decimal(10, 3) // frozen at creation (D16)
-  status           BatchStatus @default(COMPLETED)
-  createdAt        DateTime    @default(now())
+  unitCostSnapshot Decimal                @db.Decimal(10, 3) // frozen at creation (D16)
+  status           BatchStatus            @default(COMPLETED)
+  createdAt        DateTime               @default(now())
   lots             FinishedLot[]
   placements       ConsignmentPlacement[]
 }
@@ -138,15 +138,16 @@ enum LocationType {
 }
 
 model Location {
-  id         Int          @id @default(autoincrement())
-  name       String
-  type       LocationType
-  customerId Int? // set for PARTNER_SITE
-  customer   Customer?    @relation(fields: [customerId], references: [id])
-  isActive   Boolean      @default(true)
-  lots       FinishedLot[]
-  placements ConsignmentPlacement[]
-  recons     Reconciliation[]
+  id            Int                    @id @default(autoincrement())
+  name          String
+  type          LocationType
+  customerId    Int? // set for PARTNER_SITE
+  customer      Customer?              @relation(fields: [customerId], references: [id])
+  isActive      Boolean                @default(true)
+  lots          FinishedLot[]
+  placements    ConsignmentPlacement[]
+  deliveryNotes DeliveryNote[]
+  recons        Reconciliation[]
 }
 
 model FinishedLot {
@@ -170,19 +171,20 @@ enum CustomerType {
 }
 
 model Customer {
-  id               Int          @id @default(autoincrement())
+  id               Int                    @id @default(autoincrement())
   name             String
   type             CustomerType
   phone            String?
   email            String?
-  paymentTermsDays Int          @default(14) // D7; unused for B2C
-  isActive         Boolean      @default(true)
-  createdAt        DateTime     @default(now())
+  paymentTermsDays Int                    @default(14) // D7; unused for B2C
+  isActive         Boolean                @default(true)
+  createdAt        DateTime               @default(now())
   users            User[]
   locations        Location[]
   parLevels        ParLevel[]
   orders           SalesOrder[]
   placements       ConsignmentPlacement[]
+  deliveryNotes    DeliveryNote[]
   recons           Reconciliation[]
   invoices         Invoice[]
   samples          Sample[]
@@ -253,19 +255,35 @@ model Return {
   createdAt    DateTime         @default(now())
 }
 
-model ConsignmentPlacement {
-  id          Int       @id @default(autoincrement())
+// One delivery note per drop-off visit; its lines are ConsignmentPlacements.
+model DeliveryNote {
+  id          Int                    @id @default(autoincrement())
+  dnNumber    String                 @unique // "DN-001" — sequential, never reused
   customerId  Int
-  customer    Customer  @relation(fields: [customerId], references: [id])
+  customer    Customer               @relation(fields: [customerId], references: [id])
   locationId  Int
-  location    Location  @relation(fields: [locationId], references: [id])
-  productId   Int
-  product     Product   @relation(fields: [productId], references: [id])
-  brewBatchId Int
-  brewBatch   BrewBatch @relation(fields: [brewBatchId], references: [id])
-  qtyPlaced   Int
-  expiryDate  DateTime  @db.Date
-  placedAt    DateTime  @default(now())
+  location    Location               @relation(fields: [locationId], references: [id])
+  deliveredAt DateTime               @db.Date
+  notes       String?
+  createdAt   DateTime               @default(now())
+  placements  ConsignmentPlacement[]
+}
+
+model ConsignmentPlacement {
+  id             Int          @id @default(autoincrement())
+  deliveryNoteId Int
+  deliveryNote   DeliveryNote @relation(fields: [deliveryNoteId], references: [id])
+  customerId     Int
+  customer       Customer     @relation(fields: [customerId], references: [id])
+  locationId     Int
+  location       Location     @relation(fields: [locationId], references: [id])
+  productId      Int
+  product        Product      @relation(fields: [productId], references: [id])
+  brewBatchId    Int
+  brewBatch      BrewBatch    @relation(fields: [brewBatchId], references: [id])
+  qtyPlaced      Int
+  expiryDate     DateTime     @db.Date
+  placedAt       DateTime     @default(now())
 }
 
 enum ReconStatus {
@@ -274,15 +292,15 @@ enum ReconStatus {
 }
 
 model Reconciliation {
-  id          Int         @id @default(autoincrement())
+  id          Int                  @id @default(autoincrement())
   customerId  Int
-  customer    Customer    @relation(fields: [customerId], references: [id])
+  customer    Customer             @relation(fields: [customerId], references: [id])
   locationId  Int
-  location    Location    @relation(fields: [locationId], references: [id])
-  reconDate   DateTime    @db.Date
-  status      ReconStatus @default(DRAFT)
+  location    Location             @relation(fields: [locationId], references: [id])
+  reconDate   DateTime             @db.Date
+  status      ReconStatus          @default(DRAFT)
   signedOffBy String?
-  createdAt   DateTime    @default(now())
+  createdAt   DateTime             @default(now())
   lines       ReconciliationLine[]
 }
 
