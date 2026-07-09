@@ -99,6 +99,46 @@ export function strandedBottles(
   return count > 0 && soonest ? { count, soonestExpiry: soonest } : null;
 }
 
+/** Parses a count field (expired/damaged): blank means 0, must be a whole number. */
+export function parseCountQty(raw: string): number {
+  const trimmed = raw.trim();
+  if (trimmed === "") return 0;
+  if (!/^\d+$/.test(trimmed)) {
+    throw new Error("Counts must be whole numbers.");
+  }
+  return Number(trimmed);
+}
+
+export type CountLineInput = {
+  productId: number;
+  qtyPlaced: number; // bottles at the site when the count starts
+  qtyExpired: number;
+  qtyDamaged: number;
+};
+
+export type ReconLine = CountLineInput & { qtySold: number };
+
+/**
+ * Derives sold per line and enforces invariant 2:
+ * qtyPlaced = qtySold + qtyExpired + qtyDamaged (D4, D5 — every count
+ * closes the shelf out; whatever wasn't collected was sold).
+ * Throws when collected bottles exceed what was placed.
+ */
+export function buildReconLines(lines: CountLineInput[]): ReconLine[] {
+  return lines.map((l) => {
+    if (l.qtyExpired < 0 || l.qtyDamaged < 0 || l.qtyPlaced < 0) {
+      throw new Error("Counts cannot be negative.");
+    }
+    const collected = l.qtyExpired + l.qtyDamaged;
+    if (collected > l.qtyPlaced) {
+      throw new Error(
+        `Collected ${collected} bottle(s) but only ${l.qtyPlaced} were placed — recheck the count.`
+      );
+    }
+    return { ...l, qtySold: l.qtyPlaced - collected };
+  });
+}
+
 /** Validates a per-SKU placement quantity field; empty means "not placing". */
 export function parsePlacementQty(raw: string): number | null {
   const trimmed = raw.trim();

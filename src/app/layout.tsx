@@ -39,6 +39,7 @@ export default function RootLayout({
               <Link href="/stock">Stock</Link>
               <Link href="/partners">Partners</Link>
               <Link href="/placements">Placements</Link>
+              <Link href="/counts">Counts</Link>
             </nav>
             <div className="shrink-0">
               <SignedIn>

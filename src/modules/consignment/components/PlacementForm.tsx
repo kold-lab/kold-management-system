@@ -27,9 +27,11 @@ function todayIso(): string {
 export function PlacementForm({
   partners,
   products,
+  defaultPartnerId,
 }: {
   partners: PlacementPartnerOption[];
   products: PlacementProductOption[];
+  defaultPartnerId?: number;
 }) {
   const [state, formAction, isPending] = useActionState(
     createPlacementAction,
@@ -52,7 +54,12 @@ export function PlacementForm({
       <div className="space-y-3 rounded-lg border border-brand-slate/20 bg-white p-3">
         <label className="block text-sm font-semibold text-brand-deep">
           Partner
-          <select name="partnerId" required className={selectClassName} defaultValue="">
+          <select
+            name="partnerId"
+            required
+            className={selectClassName}
+            defaultValue={defaultPartnerId && partners.some((p) => p.id === defaultPartnerId) ? defaultPartnerId : ""}
+          >
             <option value="" disabled>
               Pick a partner…
             </option>

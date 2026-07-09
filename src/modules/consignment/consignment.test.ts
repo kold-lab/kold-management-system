@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   allocateFreshestFirst,
+  buildReconLines,
   nextDnNumber,
+  parseCountQty,
   parsePlacementQty,
   strandedBottles,
   type AllocatableLot,
@@ -102,5 +104,55 @@ describe("parsePlacementQty", () => {
     expect(() => parsePlacementQty("2.5")).toThrow();
     expect(() => parsePlacementQty("abc")).toThrow();
     expect(() => parsePlacementQty("-4")).toThrow();
+  });
+});
+
+describe("parseCountQty", () => {
+  it("treats blank as zero", () => {
+    expect(parseCountQty("")).toBe(0);
+    expect(parseCountQty("  ")).toBe(0);
+  });
+
+  it("parses whole numbers and rejects fractions/garbage/negatives", () => {
+    expect(parseCountQty("7")).toBe(7);
+    expect(() => parseCountQty("1.5")).toThrow();
+    expect(() => parseCountQty("-2")).toThrow();
+    expect(() => parseCountQty("x")).toThrow();
+  });
+});
+
+describe("buildReconLines", () => {
+  it("derives sold = placed − expired − damaged (invariant 2)", () => {
+    const [line] = buildReconLines([
+      { productId: 1, qtyPlaced: 20, qtyExpired: 3, qtyDamaged: 1 },
+    ]);
+    expect(line.qtySold).toBe(16);
+    expect(line.qtySold + line.qtyExpired + line.qtyDamaged).toBe(line.qtyPlaced);
+  });
+
+  it("allows a full sell-through (nothing collected)", () => {
+    const [line] = buildReconLines([
+      { productId: 1, qtyPlaced: 12, qtyExpired: 0, qtyDamaged: 0 },
+    ]);
+    expect(line.qtySold).toBe(12);
+  });
+
+  it("allows a total loss (everything collected)", () => {
+    const [line] = buildReconLines([
+      { productId: 1, qtyPlaced: 10, qtyExpired: 8, qtyDamaged: 2 },
+    ]);
+    expect(line.qtySold).toBe(0);
+  });
+
+  it("throws when collected exceeds placed", () => {
+    expect(() =>
+      buildReconLines([{ productId: 1, qtyPlaced: 5, qtyExpired: 4, qtyDamaged: 2 }])
+    ).toThrow(/Collected 6/);
+  });
+
+  it("throws on negative inputs", () => {
+    expect(() =>
+      buildReconLines([{ productId: 1, qtyPlaced: 5, qtyExpired: -1, qtyDamaged: 0 }])
+    ).toThrow();
   });
 });

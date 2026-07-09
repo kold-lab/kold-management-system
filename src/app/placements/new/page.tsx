@@ -3,7 +3,13 @@ import { getPlacementOptions, PlacementForm } from "@/modules/consignment";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewPlacementPage() {
+export default async function NewPlacementPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ partner?: string }>;
+}) {
+  const { partner } = await searchParams;
+  const defaultPartnerId = partner ? Number(partner) : undefined;
   const { partners, products } = await getPlacementOptions();
 
   return (
@@ -38,7 +44,7 @@ export default async function NewPlacementPage() {
           first.
         </p>
       ) : (
-        <PlacementForm partners={partners} products={products} />
+        <PlacementForm partners={partners} products={products} defaultPartnerId={defaultPartnerId} />
       )}
     </div>
   );
