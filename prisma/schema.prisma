@@ -257,16 +257,21 @@ model Return {
 
 // One delivery note per drop-off visit; its lines are ConsignmentPlacements.
 model DeliveryNote {
-  id          Int                    @id @default(autoincrement())
-  dnNumber    String                 @unique // "DN-001" — sequential, never reused
-  customerId  Int
-  customer    Customer               @relation(fields: [customerId], references: [id])
-  locationId  Int
-  location    Location               @relation(fields: [locationId], references: [id])
-  deliveredAt DateTime               @db.Date
-  notes       String?
-  createdAt   DateTime               @default(now())
-  placements  ConsignmentPlacement[]
+  id           Int                    @id @default(autoincrement())
+  dnNumber     String                 @unique // "DN-001" — sequential, never reused
+  customerId   Int
+  customer     Customer               @relation(fields: [customerId], references: [id])
+  locationId   Int
+  location     Location               @relation(fields: [locationId], references: [id])
+  deliveredAt  DateTime               @db.Date
+  notes        String?
+  deliveredBy  String? // who did the run — defaults to the signed-in user
+  ackName      String? // partner rep who acknowledged on the spot (D20)
+  ackSignature String? // finger signature, PNG data URL
+  ackAt        DateTime?
+  shareToken   String                 @unique @default(cuid()) // read-only partner link
+  createdAt    DateTime               @default(now())
+  placements   ConsignmentPlacement[]
 }
 
 model ConsignmentPlacement {
@@ -292,16 +297,18 @@ enum ReconStatus {
 }
 
 model Reconciliation {
-  id          Int                  @id @default(autoincrement())
-  customerId  Int
-  customer    Customer             @relation(fields: [customerId], references: [id])
-  locationId  Int
-  location    Location             @relation(fields: [locationId], references: [id])
-  reconDate   DateTime             @db.Date
-  status      ReconStatus          @default(DRAFT)
-  signedOffBy String?
-  createdAt   DateTime             @default(now())
-  lines       ReconciliationLine[]
+  id           Int                  @id @default(autoincrement())
+  customerId   Int
+  customer     Customer             @relation(fields: [customerId], references: [id])
+  locationId   Int
+  location     Location             @relation(fields: [locationId], references: [id])
+  reconDate    DateTime             @db.Date
+  status       ReconStatus          @default(DRAFT)
+  signedOffBy  String?
+  ackSignature String? // partner rep finger signature at sign-off (D20)
+  ackAt        DateTime?
+  createdAt    DateTime             @default(now())
+  lines        ReconciliationLine[]
 }
 
 // Invariant: qtyPlaced = qtySold + qtyExpired + qtyDamaged (D4, D5)

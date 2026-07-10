@@ -96,6 +96,7 @@ export type DeliveryNoteListItem = {
   deliveredAt: string;
   totalBottles: number;
   skuSummary: string;
+  acknowledged: boolean;
 };
 
 export async function listDeliveryNotes(): Promise<DeliveryNoteListItem[]> {
@@ -115,6 +116,7 @@ export async function listDeliveryNotes(): Promise<DeliveryNoteListItem[]> {
     skuSummary: n.placements
       .map((p) => `${p.qtyPlaced}× ${p.product.skuCode}`)
       .join(", "),
+    acknowledged: n.ackAt !== null,
   }));
 }
 
@@ -123,6 +125,11 @@ export type DeliveryNoteDetail = {
   dnNumber: string;
   deliveredAt: string;
   notes: string | null;
+  deliveredBy: string | null;
+  ackName: string | null;
+  ackSignature: string | null;
+  ackAt: string | null;
+  shareToken: string;
   partner: { name: string; phone: string | null; email: string | null };
   lines: Array<{
     label: string;
@@ -147,6 +154,11 @@ export async function getDeliveryNote(id: number): Promise<DeliveryNoteDetail | 
     dnNumber: note.dnNumber,
     deliveredAt: note.deliveredAt.toISOString().slice(0, 10),
     notes: note.notes,
+    deliveredBy: note.deliveredBy,
+    ackName: note.ackName,
+    ackSignature: note.ackSignature,
+    ackAt: note.ackAt ? note.ackAt.toISOString() : null,
+    shareToken: note.shareToken,
     partner: {
       name: note.customer.name,
       phone: note.customer.phone,
@@ -168,6 +180,7 @@ export type CountSiteStock = {
   partnerId: number;
   partnerName: string;
   locationId: number;
+  coveredDns: Array<{ dnNumber: string; deliveredAt: string; totalBottles: number }>;
   lines: Array<{
     productId: number;
     skuCode: string;
@@ -208,10 +221,29 @@ export async function getSiteStockForCount(partnerId: number): Promise<CountSite
     byProduct.set(p.id, entry);
   }
 
+  const lastSignedOff = await prisma.reconciliation.findFirst({
+    where: { customerId: partner.id, status: "SIGNED_OFF" },
+    orderBy: { id: "desc" },
+    select: { createdAt: true },
+  });
+  const coveredNotes = await prisma.deliveryNote.findMany({
+    where: {
+      customerId: partner.id,
+      ...(lastSignedOff ? { createdAt: { gt: lastSignedOff.createdAt } } : {}),
+    },
+    include: { placements: { select: { qtyPlaced: true } } },
+    orderBy: { id: "asc" },
+  });
+
   return {
     partnerId: partner.id,
     partnerName: partner.name,
     locationId: site.id,
+    coveredDns: coveredNotes.map((n) => ({
+      dnNumber: n.dnNumber,
+      deliveredAt: n.deliveredAt.toISOString().slice(0, 10),
+      totalBottles: n.placements.reduce((s, x) => s + x.qtyPlaced, 0),
+    })),
     lines: [...byProduct.entries()]
       .map(([productId, e]) => ({ productId, ...e }))
       .sort((a, b) => a.skuCode.localeCompare(b.skuCode)),
@@ -251,6 +283,8 @@ export type ReconDetail = {
   reconDate: string;
   status: "DRAFT" | "SIGNED_OFF";
   signedOffBy: string | null;
+  ackSignature: string | null;
+  ackAt: string | null;
   lines: Array<{
     productId: number;
     skuCode: string;
@@ -278,6 +312,8 @@ export async function getReconciliation(id: number): Promise<ReconDetail | null>
     reconDate: r.reconDate.toISOString().slice(0, 10),
     status: r.status,
     signedOffBy: r.signedOffBy,
+    ackSignature: r.ackSignature,
+    ackAt: r.ackAt ? r.ackAt.toISOString() : null,
     lines: r.lines.map((l) => ({
       productId: l.productId,
       skuCode: l.product.skuCode,
@@ -385,4 +421,15 @@ export async function getPartnerPilot(): Promise<PartnerPilotCard[]> {
     const rb = b.worstStatus ? STATUS_RANK[b.worstStatus] : 99;
     return ra - rb || a.partnerName.localeCompare(b.partnerName);
   });
+}
+
+/** Read-only DN lookup by unguessable share token — the partner's copy. */
+export async function getDeliveryNoteByToken(
+  token: string
+): Promise<DeliveryNoteDetail | null> {
+  const note = await prisma.deliveryNote.findUnique({
+    where: { shareToken: token },
+    select: { id: true },
+  });
+  return note ? getDeliveryNote(note.id) : null;
 }

@@ -165,3 +165,19 @@ export function isCountOverdue(
   const days = Math.floor((today.getTime() - lastCountDate.getTime()) / 86_400_000);
   return days >= 7;
 }
+
+/**
+ * Validates a finger-signature payload (D20): must be a PNG data URL and
+ * small enough to store sanely as a text column (~200KB base64 cap).
+ * Throws on anything else; returns the validated string.
+ */
+export function parseSignatureInput(raw: string): string {
+  const value = raw.trim();
+  if (!value.startsWith("data:image/png;base64,")) {
+    throw new Error("Signature is missing — sign in the box first.");
+  }
+  if (value.length > 200_000) {
+    throw new Error("Signature image is too large — clear and sign again.");
+  }
+  return value;
+}

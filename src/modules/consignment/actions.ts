@@ -10,6 +10,7 @@ import {
   nextDnNumber,
   parseCountQty,
   parsePlacementQty,
+  parseSignatureInput,
   type LotAllocation,
 } from "./logic";
 import { getSiteStockForCount, warehouseLotsFor } from "./queries";
@@ -105,6 +106,7 @@ export async function createPlacementAction(
           locationId: site.id,
           deliveredAt,
           notes,
+          deliveredBy: actor.name,
         },
       });
       dnId = dn.id;
@@ -215,8 +217,16 @@ export async function saveCountAction(
   }
 
   const signedOffBy = String(formData.get("signedOffBy") ?? "").trim();
-  if (mode === "sign_off" && signedOffBy === "") {
-    return { error: "Enter the partner rep's name to sign off." };
+  let ackSignature: string | null = null;
+  if (mode === "sign_off") {
+    if (signedOffBy === "") {
+      return { error: "Enter the partner rep's name to sign off." };
+    }
+    try {
+      ackSignature = parseSignatureInput(String(formData.get("ackSignature") ?? ""));
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Signature required." };
+    }
   }
 
   const site = await getSiteStockForCount(partnerId);
@@ -257,6 +267,8 @@ export async function saveCountAction(
               reconDate,
               status: mode === "sign_off" ? "SIGNED_OFF" : "DRAFT",
               signedOffBy: mode === "sign_off" ? signedOffBy : null,
+              ackSignature,
+              ackAt: mode === "sign_off" ? new Date() : null,
             },
           })
         : await tx.reconciliation.create({
@@ -266,6 +278,8 @@ export async function saveCountAction(
               reconDate,
               status: mode === "sign_off" ? "SIGNED_OFF" : "DRAFT",
               signedOffBy: mode === "sign_off" ? signedOffBy : null,
+              ackSignature,
+              ackAt: mode === "sign_off" ? new Date() : null,
             },
           });
       reconId = recon.id;
@@ -319,4 +333,65 @@ export async function saveCountAction(
   revalidatePath("/stock");
   revalidatePath("/");
   redirect(`/counts/${reconId}`);
+}
+
+export type AcknowledgeDnState = { error?: string };
+
+/**
+ * Partner rep acknowledges a delivery on the spot (D20): typed name +
+ * finger signature stored on the delivery note, once — acknowledgements
+ * on posted records are never overwritten.
+ */
+export async function acknowledgeDeliveryAction(
+  _prevState: AcknowledgeDnState,
+  formData: FormData
+): Promise<AcknowledgeDnState> {
+  let actor;
+  try {
+    actor = await requireWriter();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Not signed in." };
+  }
+
+  const dnId = Number(formData.get("dnId"));
+  if (!Number.isInteger(dnId) || dnId <= 0) {
+    return { error: "Unknown delivery note." };
+  }
+
+  const ackName = String(formData.get("ackName") ?? "").trim();
+  if (ackName === "") {
+    return { error: "Enter the name of the person acknowledging." };
+  }
+  const deliveredBy = String(formData.get("deliveredBy") ?? "").trim() || actor.name;
+
+  let ackSignature;
+  try {
+    ackSignature = parseSignatureInput(String(formData.get("ackSignature") ?? ""));
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Signature required." };
+  }
+
+  const dn = await prisma.deliveryNote.findUnique({ where: { id: dnId } });
+  if (!dn) return { error: "Unknown delivery note." };
+  if (dn.ackAt) return { error: "This delivery note is already acknowledged." };
+
+  await prisma.$transaction([
+    prisma.deliveryNote.update({
+      where: { id: dnId },
+      data: { deliveredBy, ackName, ackSignature, ackAt: new Date() },
+    }),
+    prisma.auditLog.create({
+      data: {
+        userId: actor.id,
+        action: "delivery_note.acknowledge",
+        entity: "DeliveryNote",
+        entityId: String(dnId),
+        detail: { dnNumber: dn.dnNumber, ackName, deliveredBy },
+      },
+    }),
+  ]);
+
+  revalidatePath(`/placements/${dnId}/note`);
+  revalidatePath("/placements");
+  return {};
 }

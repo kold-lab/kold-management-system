@@ -84,6 +84,22 @@ export default async function CountDetailPage({
           {recon.signedOffBy && <> · acknowledged by {recon.signedOffBy}</>}
         </p>
       </div>
+      {recon.ackSignature && (
+        <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg border border-brand-slate/20 bg-white p-4">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-brand-deep">{recon.signedOffBy}</p>
+            {recon.ackAt && (
+              <p className="text-xs text-brand-slate">signed {recon.ackAt.slice(0, 10)}</p>
+            )}
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={recon.ackSignature}
+            alt={`Signature of ${recon.signedOffBy ?? "partner rep"}`}
+            className="h-16 max-w-[200px] object-contain"
+          />
+        </div>
+      )}
       <div className="space-y-3 rounded-lg border border-brand-slate/20 bg-white p-4">
         {recon.lines.map((l) => (
           <div

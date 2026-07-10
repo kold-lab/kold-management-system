@@ -48,6 +48,16 @@ Never contradict these in code without updating this file first.
   offered in one size only, some in both — the catalog must support
   deactivating a single size of a flavour without hiding the other.
   Placement and weekly-count screens operate per SKU, never per flavour.
+- **D20 — Digital acknowledgement (2026-07-09).** Delivery notes and count
+  sign-offs are acknowledged on the spot, digitally: the partner rep types
+  their name and signs with a finger on the operator's phone (canvas PNG,
+  stored on the record with a timestamp). "Delivered by" defaults to the
+  signed-in user. Partners receive a live read-only copy via an
+  unguessable tokenized link (`/dn/<token>`, no login) shared through the
+  phone's share sheet (WhatsApp-first); QR display is a later add.
+  Printing is the unsigned/offline fallback — the printed return section
+  is retired because counts capture returns digitally. Acknowledged
+  records show the signature; acknowledgements are never overwritten.
 - **D19 — Placement picking: freshest-first with stranding warning
   (2026-07-08).** When placing consignment stock, the app defaults to the
   freshest batch (longest partner shelf life — expired-at-partner is the

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -33,7 +34,12 @@ export function DeliveryNotesTable({ notes }: { notes: DeliveryNoteListItem[] })
       <TableBody>
         {notes.map((n) => (
           <TableRow key={n.id}>
-            <TableCell className="font-mono font-semibold">{n.dnNumber}</TableCell>
+            <TableCell className="font-mono font-semibold">
+              {n.dnNumber}
+              {n.acknowledged && (
+                <Badge variant="success" className="ml-2">signed</Badge>
+              )}
+            </TableCell>
             <TableCell className="font-semibold">{n.partnerName}</TableCell>
             <TableCell>{n.deliveredAt}</TableCell>
             <TableCell>

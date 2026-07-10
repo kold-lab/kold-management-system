@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SignaturePad } from "@/components/ui/signature-pad";
 import { saveCountAction, type SaveCountState } from "../actions";
 import { buildReconLines } from "../logic";
 import type { CountSiteStock } from "../queries";
@@ -67,6 +68,15 @@ export function CountForm({
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="partnerId" value={site.partnerId} />
       {draft && <input type="hidden" name="draftId" value={draft.id} />}
+
+      {site.coveredDns.length > 0 && (
+        <div className="rounded-lg border border-brand-slate/20 bg-brand-ice/50 p-3 text-sm text-brand-deep">
+          <span className="font-semibold">Covers:</span>{" "}
+          {site.coveredDns
+            .map((d) => `${d.dnNumber} (${d.deliveredAt}, ${d.totalBottles} btl)`)
+            .join(" · ")}
+        </div>
+      )}
 
       <div className="rounded-lg border border-brand-slate/20 bg-white p-3">
         <label className="block text-sm font-semibold text-brand-deep">
@@ -144,7 +154,7 @@ export function CountForm({
         {derived.error && <p className="text-sm text-danger">{derived.error}</p>}
       </div>
 
-      <div className="rounded-lg border border-brand-slate/20 bg-white p-3">
+      <div className="space-y-3 rounded-lg border border-brand-slate/20 bg-white p-3">
         <label className="block text-sm font-semibold text-brand-deep">
           Partner rep (sign-off)
           <Input
@@ -153,6 +163,7 @@ export function CountForm({
             className="mt-1"
           />
         </label>
+        <SignaturePad name="ackSignature" label="Partner signature (required to sign off)" />
       </div>
 
       {state.error && <p className="text-sm text-danger">{state.error}</p>}

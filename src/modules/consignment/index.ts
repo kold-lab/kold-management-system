@@ -1,5 +1,6 @@
 export {
   getDeliveryNote,
+  getDeliveryNoteByToken,
   getPlacementOptions,
   getPartnerPilot,
   getReconciliation,
@@ -18,11 +19,14 @@ export type {
   ReconListItem,
 } from "./queries";
 export { isCountOverdue } from "./logic";
-export { createPlacementAction, saveCountAction } from "./actions";
-export type { CreatePlacementState, SaveCountState } from "./actions";
+export { acknowledgeDeliveryAction, createPlacementAction, saveCountAction } from "./actions";
+export type { AcknowledgeDnState, CreatePlacementState, SaveCountState } from "./actions";
 export { PlacementForm } from "./components/PlacementForm";
 export { DeliveryNotesTable } from "./components/DeliveryNotesTable";
 export { CountForm } from "./components/CountForm";
 export { CountsTable } from "./components/CountsTable";
 export { PartnerPilotGrid } from "./components/PartnerPilotGrid";
 export { PrintButton } from "./components/PrintButton";
+export { AcknowledgeDelivery } from "./components/AcknowledgeDelivery";
+export { DeliveryNoteDocument } from "./components/DeliveryNoteDocument";
+export { ShareButton } from "./components/ShareButton";

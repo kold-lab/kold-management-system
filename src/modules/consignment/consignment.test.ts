@@ -6,6 +6,7 @@ import {
   nextDnNumber,
   parseCountQty,
   parsePlacementQty,
+  parseSignatureInput,
   strandedBottles,
   type AllocatableLot,
 } from "./logic";
@@ -169,5 +170,20 @@ describe("isCountOverdue", () => {
   it("follows the weekly cadence (D5)", () => {
     expect(isCountOverdue(new Date("2026-07-03"), today, 12)).toBe(false); // 6 days
     expect(isCountOverdue(new Date("2026-07-02"), today, 12)).toBe(true); // 7 days
+  });
+});
+
+describe("parseSignatureInput", () => {
+  const png = "data:image/png;base64," + "A".repeat(100);
+  it("accepts a PNG data URL", () => {
+    expect(parseSignatureInput(png)).toBe(png);
+  });
+  it("rejects empty and non-PNG payloads", () => {
+    expect(() => parseSignatureInput("")).toThrow(/missing/);
+    expect(() => parseSignatureInput("data:image/svg+xml,<svg/>")).toThrow();
+    expect(() => parseSignatureInput("hello")).toThrow();
+  });
+  it("rejects oversized payloads", () => {
+    expect(() => parseSignatureInput("data:image/png;base64," + "A".repeat(200_001))).toThrow(/too large/);
   });
 });

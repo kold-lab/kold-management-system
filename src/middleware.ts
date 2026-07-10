@@ -1,6 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)"]);
+const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/dn/(.*)"]);
 
 // Everything is internal ops — sign-in required everywhere except sign-in itself.
 export default clerkMiddleware(async (auth, req) => {
