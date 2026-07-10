@@ -149,7 +149,7 @@ export function PlacementForm({
                         [p.productId]: e.target.value,
                       }))
                     }
-                    className="h-10 rounded border border-brand-slate/30 bg-white px-2 text-sm text-brand-deep focus:outline-none focus:ring-2 focus:ring-brand/40"
+                    className="h-10 min-w-0 max-w-full rounded border border-brand-slate/30 bg-white px-2 text-sm text-brand-deep focus:outline-none focus:ring-2 focus:ring-brand/40"
                   >
                     <option value="">Freshest first (default)</option>
                     {p.lots.map((l) => (

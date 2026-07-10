@@ -90,6 +90,7 @@ export type FinishedLotItem = {
   label: string;
   skuCode: string;
   locationName: string;
+  locationType: "WAREHOUSE" | "PARTNER_SITE";
   brewDate: Date;
   expiryDate: Date;
   qtyRemaining: number;
@@ -115,6 +116,7 @@ export async function listFinishedLots(): Promise<FinishedLotItem[]> {
       label: `${lot.brewBatch.product.flavour.name} ${lot.brewBatch.product.sizeMl}ml`,
       skuCode: lot.brewBatch.product.skuCode,
       locationName: lot.location.name,
+      locationType: lot.location.type,
       brewDate: lot.brewBatch.brewDate,
       expiryDate: lot.expiryDate,
       qtyRemaining: lot.qtyRemaining,

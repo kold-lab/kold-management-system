@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Nunito } from "next/font/google";
 import { ClerkProvider, SignedIn, UserButton } from "@clerk/nextjs";
+import { NavMenu } from "@/components/NavMenu";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -25,22 +26,10 @@ export default function RootLayout({
       <html lang="en">
         <body className={`${nunito.variable} font-sans antialiased`}>
           <header className="flex items-center gap-4 border-b border-brand-slate/20 bg-white px-4 py-2 print:hidden">
-            <div className="shrink-0">
-              <span className="text-lg font-bold text-brand">k.</span>
-              <span className="ml-2 hidden text-sm font-semibold text-brand-slate sm:inline">
-                kold ms
-              </span>
-            </div>
-            <nav className="flex min-w-0 flex-1 gap-4 overflow-x-auto whitespace-nowrap py-1 text-sm font-semibold text-brand-deep">
-              <Link href="/">Dashboard</Link>
-              <Link href="/materials">Materials</Link>
-              <Link href="/catalog">Catalog</Link>
-              <Link href="/production">Production</Link>
-              <Link href="/stock">Stock</Link>
-              <Link href="/partners">Partners</Link>
-              <Link href="/placements">Placements</Link>
-              <Link href="/counts">Counts</Link>
-            </nav>
+            <Link href="/" className="shrink-0 text-lg font-bold text-brand">
+              k.
+            </Link>
+            <NavMenu />
             <div className="shrink-0">
               <SignedIn>
                 <UserButton />

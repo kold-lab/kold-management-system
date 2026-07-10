@@ -1,9 +1,10 @@
-import { AddPartnerDialog, listPartners, PartnersTable } from "@/modules/customers";
+import { AddPartnerDialog } from "@/modules/customers";
+import { getPartnerPilot, PartnerPilotGrid } from "@/modules/consignment";
 
 export const dynamic = "force-dynamic";
 
 export default async function PartnersPage() {
-  const partners = await listPartners();
+  const cards = await getPartnerPilot();
 
   return (
     <div className="space-y-4">
@@ -11,12 +12,12 @@ export default async function PartnersPage() {
         <div>
           <h1 className="text-xl font-bold text-brand">Partners</h1>
           <p className="text-sm text-brand-slate">
-            Consignment outlets — who stocks kold and what sits at their site.
+            Every shelf at a glance — most urgent first.
           </p>
         </div>
         <AddPartnerDialog />
       </div>
-      <PartnersTable partners={partners} />
+      <PartnerPilotGrid cards={cards} />
     </div>
   );
 }

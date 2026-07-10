@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   allocateFreshestFirst,
   buildReconLines,
+  isCountOverdue,
   nextDnNumber,
   parseCountQty,
   parsePlacementQty,
@@ -154,5 +155,19 @@ describe("buildReconLines", () => {
     expect(() =>
       buildReconLines([{ productId: 1, qtyPlaced: 5, qtyExpired: -1, qtyDamaged: 0 }])
     ).toThrow();
+  });
+});
+
+describe("isCountOverdue", () => {
+  const today = new Date("2026-07-09");
+  it("is never overdue with an empty shelf", () => {
+    expect(isCountOverdue(null, today, 0)).toBe(false);
+  });
+  it("is overdue immediately when stocked but never counted", () => {
+    expect(isCountOverdue(null, today, 12)).toBe(true);
+  });
+  it("follows the weekly cadence (D5)", () => {
+    expect(isCountOverdue(new Date("2026-07-03"), today, 12)).toBe(false); // 6 days
+    expect(isCountOverdue(new Date("2026-07-02"), today, 12)).toBe(true); // 7 days
   });
 });

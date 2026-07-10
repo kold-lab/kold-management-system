@@ -9,7 +9,7 @@ export type {
   NewBatchLine,
   FinishedLotItem,
 } from "./queries";
-export { summarizeStock } from "./logic";
+export { daysToExpiry, expiryStatus, summarizeStock } from "./logic";
 export type { StockSummaryRow, ExpiryStatus } from "./logic";
 export { createBrewBatchAction, writeOffLotAction } from "./actions";
 export type { CreateBatchState, WriteOffState } from "./actions";

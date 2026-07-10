@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { daysToExpiry, expiryStatus, type ExpiryStatus } from "@/modules/production";
 import type { AllocatableLot } from "./logic";
 
 export type PlacementPartnerOption = { id: number; name: string };
@@ -287,4 +288,101 @@ export async function getReconciliation(id: number): Promise<ReconDetail | null>
       qtyDamaged: l.qtyDamaged,
     })),
   };
+}
+
+// ── partner pilot (bird's-eye view) ──
+
+export type PartnerPilotCard = {
+  partnerId: number;
+  partnerName: string;
+  phone: string | null;
+  email: string | null;
+  paymentTermsDays: number;
+  totalBottles: number;
+  worstStatus: ExpiryStatus | null; // null when the shelf is empty
+  soonestExpiry: string | null;
+  lastCount: { reconDate: string; status: "DRAFT" | "SIGNED_OFF" } | null;
+  lines: Array<{
+    label: string;
+    qty: number;
+    expiryDate: string;
+    status: ExpiryStatus;
+  }>;
+};
+
+const STATUS_RANK: Record<ExpiryStatus, number> = {
+  expired: 0,
+  today: 1,
+  soon: 2,
+  ok: 3,
+};
+
+/** Every active partner with what sits on their shelf, expiry-watched. */
+export async function getPartnerPilot(): Promise<PartnerPilotCard[]> {
+  const today = new Date();
+  const partners = await prisma.customer.findMany({
+    where: { type: "B2B_PARTNER", isActive: true },
+    include: {
+      locations: {
+        where: { type: "PARTNER_SITE" },
+        include: {
+          lots: {
+            where: { qtyRemaining: { gt: 0 } },
+            include: {
+              brewBatch: { include: { product: { include: { flavour: true } } } },
+            },
+          },
+        },
+      },
+      recons: { orderBy: { id: "desc" }, take: 1 },
+    },
+    orderBy: { name: "asc" },
+  });
+
+  const cards = partners.map((p) => {
+    const lots = p.locations.flatMap((l) => l.lots);
+    const lines = lots
+      .map((lot) => {
+        const days = daysToExpiry(lot.expiryDate, today);
+        return {
+          label: `${lot.brewBatch.product.flavour.name} ${lot.brewBatch.product.sizeMl}ml`,
+          qty: lot.qtyRemaining,
+          expiryDate: lot.expiryDate.toISOString().slice(0, 10),
+          status: expiryStatus(days),
+        };
+      })
+      .sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status]);
+
+    const worstStatus = lines.length
+      ? lines.reduce(
+          (worst, l) => (STATUS_RANK[l.status] < STATUS_RANK[worst] ? l.status : worst),
+          lines[0].status
+        )
+      : null;
+
+    const recon = p.recons[0];
+    return {
+      partnerId: p.id,
+      partnerName: p.name,
+      phone: p.phone,
+      email: p.email,
+      paymentTermsDays: p.paymentTermsDays,
+      totalBottles: lines.reduce((s, l) => s + l.qty, 0),
+      worstStatus,
+      soonestExpiry: lines.length
+        ? lines.reduce((min, l) => (l.expiryDate < min ? l.expiryDate : min), lines[0].expiryDate)
+        : null,
+      lastCount: recon
+        ? { reconDate: recon.reconDate.toISOString().slice(0, 10), status: recon.status }
+        : null,
+      lines,
+    };
+  });
+
+  // Most urgent shelves first; empty shelves last.
+  return cards.sort((a, b) => {
+    const ra = a.worstStatus ? STATUS_RANK[a.worstStatus] : 99;
+    const rb = b.worstStatus ? STATUS_RANK[b.worstStatus] : 99;
+    return ra - rb || a.partnerName.localeCompare(b.partnerName);
+  });
 }

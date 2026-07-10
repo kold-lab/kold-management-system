@@ -7,4 +7,8 @@ export {
 } from "./actions";
 export type { PartnerState } from "./actions";
 export { PartnersTable } from "./components/PartnersTable";
-export { AddPartnerDialog } from "./components/PartnerDialogs";
+export {
+  AddPartnerDialog,
+  DeactivatePartnerDialog,
+  EditPartnerDialog,
+} from "./components/PartnerDialogs";

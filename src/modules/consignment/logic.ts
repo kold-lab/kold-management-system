@@ -150,3 +150,18 @@ export function parsePlacementQty(raw: string): number | null {
   if (qty === 0) return null;
   return qty;
 }
+
+/**
+ * Weekly cadence (D5): a shelf holding stock is due for a count 7 days
+ * after the last signed-off count — or immediately if it was never counted.
+ */
+export function isCountOverdue(
+  lastCountDate: Date | null,
+  today: Date,
+  bottlesOnSite: number
+): boolean {
+  if (bottlesOnSite <= 0) return false;
+  if (!lastCountDate) return true;
+  const days = Math.floor((today.getTime() - lastCountDate.getTime()) / 86_400_000);
+  return days >= 7;
+}
